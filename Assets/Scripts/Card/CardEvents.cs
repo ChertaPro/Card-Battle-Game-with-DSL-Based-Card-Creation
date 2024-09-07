@@ -41,21 +41,28 @@ public class CardEvents : MonoBehaviour
         {
             activate.Effect(keyword.effect,Playercard);
             CardDisplay cardDisplay = Playercard.GetComponent<CardDisplay>();
-            if (cardDisplay.attack_type == 'M' )
+            if(cardDisplay.attack_type != null)
             {
-                Field = GameObject.Find("COCMelee");
-                Playercard.transform.SetParent(Field.transform, false);
-            }
-            else if (cardDisplay.attack_type == 'R' )
-            {
-                Field = GameObject.Find("COCRange");
-                Playercard.transform.SetParent(Field.transform, false);
-            }
-            else if (cardDisplay.attack_type == 'S' )
-            {
-                Field = GameObject.Find("COCSiege");
-                Playercard.transform.SetParent(Field.transform, false);
-            }
+                int ran;
+                ran = Random.Range(0,cardDisplay.attack_type.Count);
+                string row = cardDisplay.attack_type[ran];
+
+                if (row == "Melee" )
+                {
+                    Field = GameObject.Find("COCMelee");
+                    Playercard.transform.SetParent(Field.transform, false);
+                }
+                else if (row == "Ranged" )
+                {
+                    Field = GameObject.Find("COCRange");
+                    Playercard.transform.SetParent(Field.transform, false);
+                }
+                else if (row == "Siege" )
+                {
+                    Field = GameObject.Find("COCSiege");
+                    Playercard.transform.SetParent(Field.transform, false);
+                }
+            }    
             else if (cardDisplay.cardtype == "Clima" )
             {
                 Field = GameObject.Find("ClimaZone");
@@ -87,20 +94,27 @@ public class CardEvents : MonoBehaviour
         {
             activate.Effect(keyword.effect,Playercard);
             CardDisplay cardDisplay = Playercard.GetComponent<CardDisplay>();
-            if (cardDisplay.attack_type == 'M' )
+            if(cardDisplay.attack_type != null)
             {
-                Field = GameObject.Find("CRMelee");
-                Playercard.transform.SetParent(Field.transform, false);
-            }
-            else if (cardDisplay.attack_type == 'R' )
-            {
-                Field = GameObject.Find("CRRange");
-                Playercard.transform.SetParent(Field.transform, false);
-            }
-            else if (cardDisplay.attack_type == 'S' )
-            {
-                Field = GameObject.Find("CRSiege");
-                Playercard.transform.SetParent(Field.transform, false);
+                int ran;
+                ran = Random.Range(0,cardDisplay.attack_type.Count);
+                string row = cardDisplay.attack_type[ran];
+
+                if (row == "Melee" )
+                {
+                    Field = GameObject.Find("CRMelee");
+                    Playercard.transform.SetParent(Field.transform, false);
+                }
+                else if (row == "Ranged" )
+                {
+                    Field = GameObject.Find("CRRange");
+                    Playercard.transform.SetParent(Field.transform, false);
+                }
+                else if (row == "Siege" )
+                {
+                    Field = GameObject.Find("CRSiege");
+                    Playercard.transform.SetParent(Field.transform, false);
+                }
             }
             else if (cardDisplay.cardtype == "Clima" )
             {

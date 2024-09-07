@@ -13,7 +13,7 @@ public class CardDisplay : MonoBehaviour
     public int id;
     public string cardname;
     public string cardtype;
-    public char? attack_type;
+    public List<string> attack_type;
     public int? power;
     public string effect;
     public Sprite spriteimage;
@@ -31,7 +31,7 @@ public class CardDisplay : MonoBehaviour
 //**-------------------Effects----------------------------------------- 
     public bool climabool;
     public bool aumentobool;
-    public List<int?> backuppower = new List<int?>{null,9,7,8,4,6,6,4,7,null,null,null,null,null,null,0,0,null,8,10,7,5,6,4,5,null,null}; 
+    public List<int?> backuppower; 
     public bool keepingbool;
 
     // Start is called before the first frame update
@@ -39,6 +39,14 @@ public class CardDisplay : MonoBehaviour
     {
         DisplayHand();
         keepingbool = false;
+        backuppower = new List<int?>();
+        if(CardDatabase.cards.Count > 0)
+        {
+            foreach (Card card in CardDatabase.cards)
+            {
+                backuppower.Add(card.power);
+            }
+        }
         
 
     }
@@ -137,7 +145,7 @@ public class CardDisplay : MonoBehaviour
         {
             foreach(Card card in CardDatabase.cards)
             {
-                if (card.attack_type =='M')
+                if (card.attack_type !=null)
                 {
                     card.climabool = true;
                     card.power = backuppower[card.id];
@@ -149,7 +157,7 @@ public class CardDisplay : MonoBehaviour
         {
             foreach(Card card in CardDatabase.cards)
             {
-                if (card.attack_type =='R')
+                if (card.attack_type !=null)
                 {
                     card.climabool = true;
                     card.power = backuppower[card.id];
@@ -161,7 +169,7 @@ public class CardDisplay : MonoBehaviour
         {
             foreach(Card card in CardDatabase.cards)
             {
-                if (card.attack_type =='M')
+                if (card.attack_type !=null)
                 {
                     card.climabool = true;
                     card.power = backuppower[card.id];
@@ -173,7 +181,7 @@ public class CardDisplay : MonoBehaviour
         {
             foreach(Card card in CardDatabase.cards)
             {
-                if (card.attack_type =='R')
+                if (card.attack_type !=null)
                 {
                     card.climabool = true;
                     card.power = backuppower[card.id];

@@ -9,6 +9,10 @@ public class MainMenu : MonoBehaviour
     {
         StartCoroutine("PlayGame");
     }
+    public void CreateCard()
+    {
+        StartCoroutine("Create");
+    }
     public void Exit()
     {
         Application.Quit();
@@ -17,5 +21,10 @@ public class MainMenu : MonoBehaviour
     {
         yield return new WaitForSeconds(1);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    }
+    IEnumerator Create()
+    {
+        yield return new WaitForSeconds(1);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 2);
     }
 }

@@ -139,13 +139,13 @@ public class TurnSystem : MonoBehaviour
     {
         if (GameController.staticCOCpower > GameController.staticCRpower)
         {
-            intcocwins+=1;
-            COCWins.text ="Wins : " + intcocwins.ToString();
             DestroyCards();
             LeaderEvents.COCLeaderEffect = true;
             LeaderEvents.CRLeaderEffect = true;
             if(IsfiedEmpty())
             {
+                intcocwins+=1;
+                COCWins.text ="Wins : " + intcocwins.ToString();
                 COCturn = false;
                 CRturn = false;
                 turn = 1;
@@ -153,13 +153,14 @@ public class TurnSystem : MonoBehaviour
         }
         if (GameController.staticCOCpower < GameController.staticCRpower)
         {
-            intcrwins+=1;
-            CRWins.text = "Wins : " + intcrwins.ToString();
+            
             DestroyCards();
             LeaderEvents.COCLeaderEffect = true;
             LeaderEvents.CRLeaderEffect = true;
             if(IsfiedEmpty())
             {
+                intcrwins+=1;
+                CRWins.text = "Wins : " + intcrwins.ToString();
                 COCturn = false;
                 CRturn = false;
                 turn = 0;
@@ -167,15 +168,15 @@ public class TurnSystem : MonoBehaviour
         }
         if (GameController.staticCOCpower == GameController.staticCRpower)
         {
-            intcocwins+=1;
-            intcrwins+=1;
-            COCWins.text = "Wins : "+ intcocwins.ToString();
-            CRWins.text =  "Wins : " + intcrwins.ToString();
             DestroyCards();
             LeaderEvents.COCLeaderEffect = true;
             LeaderEvents.CRLeaderEffect = true;
             if(IsfiedEmpty())
             {
+                intcocwins+=1;
+                intcrwins+=1;
+                COCWins.text = "Wins : "+ intcocwins.ToString();
+                CRWins.text =  "Wins : " + intcrwins.ToString();
                 COCturn = false;
                 CRturn = false;
                 turn = 1;

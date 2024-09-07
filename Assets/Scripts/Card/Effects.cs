@@ -188,7 +188,7 @@ public class Effects : MonoBehaviour
                     if(destroy.parent == Field.transform || destroy.parent == COCHand.transform && type.cardtype != "Oro")
                     {
                         CardDisplay graveyard = destroy.GetComponent<CardDisplay>();
-                        graveyard.attack_type = 'g';//Para que no tome ninguno de los valores de la funcion de click y le vuelvva a cambiar el padre a una row del trablero
+                        graveyard.attack_type = new List<string>{"g"};//Para que no tome ninguno de los valores de la funcion de click y le vuelvva a cambiar el padre a una row del trablero
                         destroy.SetParent(COCgraveyard.transform,false);
                         break;
                     }
@@ -199,7 +199,7 @@ public class Effects : MonoBehaviour
                     if(destroy.parent == Field.transform || destroy.parent == CRHand.transform && type.cardtype != "Oro")
                     {
                         CardDisplay graveyard = destroy.GetComponent<CardDisplay>();
-                        graveyard.attack_type = 'g';
+                        graveyard.attack_type = new List<string>{"g"};
                         destroy.SetParent(CRgraveyard.transform,false);
                         break;
                     }
