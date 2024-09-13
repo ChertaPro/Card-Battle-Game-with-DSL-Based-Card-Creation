@@ -158,7 +158,7 @@ public class Lexer
             case '"': String(); break;
 
             default:
-                if (IsDigit(character)) number();
+                if (IsDigit(character)) Number();
                 else if (IsAlpha(character)) Identifier();
                 else DSL.Report(line, column, "", "Unexpected character: " + character);
                 break;
@@ -217,7 +217,7 @@ public class Lexer
         // alcanzo "
         advance();
         object value = source.Substring(start + 1, current - start - 2);
-        AddToken(TokenType.StringLiteral, value);
+        AddToken(TokenType.String, value);
     }
 
     //para saber si es un numero
@@ -226,11 +226,11 @@ public class Lexer
         return c >= '0' && c <= '9';
     }
 
-    void number()
+    void Number()
     {
         //recorreindo el numero 
         while (IsDigit(peek())) advance();
-        AddToken(TokenType.NumberLiteral, int.Parse(source.Substring(start, current - start)));
+        AddToken(TokenType.Number, int.Parse(source.Substring(start, current - start)));
     }
 
     bool IsAlpha(char c)
@@ -294,9 +294,9 @@ public enum TokenType
 
     //3. Literals
     Identifier, //Identificadores, que son nombres de variables, funciones, etc
-    StringLiteral, //Literales de cadena, e.g., "example"
-    NumberLiteral, //Literales numéricos, e.g., 42
-    BoolLiteral, //Literales booleanos, true o false
+    String, //Literales de cadena, e.g., "example"
+    Number, //Literales numéricos, e.g., 42
+    Bool, //Literales booleanos, true o false
 
     //4. Reserved Words
     Card, //Palabra clave para definir una carta

@@ -1313,7 +1313,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2425759001431638145, guid: 4dc2f79d6c819c548ad8d49ed17aa23d, type: 3}
       propertyPath: displayid
-      value: 17
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3926467674138607386, guid: 4dc2f79d6c819c548ad8d49ed17aa23d, type: 3}
       propertyPath: Playercard
@@ -2950,9 +2950,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d8feff584e82c64b890a743c979a6c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Deck2: []
-  Ids: 050000000500000005000000090000000a0000000c0000000e0000000f00000010000000120000001300000014000000150000001500000015000000160000001600000016000000170000001700000017000000180000001800000018000000190000001a000000
-  randomid: 0
   top1: {fileID: 768514412}
   top2: {fileID: 390727806}
   top3: {fileID: 1902730202}
@@ -3144,9 +3141,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: baa01f6720636964884657df19645c73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Deck1: []
-  Ids: 010000000200000003000000040000000400000004000000050000000500000005000000060000000600000006000000070000000700000007000000080000000800000008000000090000000a0000000b0000000c0000000d0000000e0000000f00000010000000
-  randomid: 0
   top1: {fileID: 568155295}
   top2: {fileID: 973494577}
   top3: {fileID: 174028720}
@@ -3290,6 +3284,7 @@ MonoBehaviour:
   gamecontroller: {fileID: 0}
   Field: {fileID: 0}
   zones: []
+  keepobject: {fileID: 0}
   intcocwins: 0
   intcrwins: 0
   COCWins: {fileID: 2014647063}

@@ -267,9 +267,9 @@ public class Effects : MonoBehaviour
                     CardDisplay clima = card.GetComponent<CardDisplay>();
                     if(clima.climabool && clima.cardtype != "Oro")
                     {
-                        CardDatabase.cards[clima.displayid].climabool = false;
+                        CardDatabase.COCDeck[clima.displayid].climabool = false;
                         clima.climabool = false;
-                        CardDatabase.cards[clima.displayid].power -=2;
+                        CardDatabase.COCDeck[clima.displayid].power -=2;
                     }
                 }
             } 
@@ -280,9 +280,9 @@ public class Effects : MonoBehaviour
                     CardDisplay clima = card.GetComponent<CardDisplay>();
                     if(clima.climabool && clima.cardtype != "Oro")
                     {
-                        CardDatabase.cards[clima.displayid].climabool = false;
+                        CardDatabase.CRDeck[clima.displayid].climabool = false;
                         clima.climabool = false;
-                        CardDatabase.cards[clima.displayid].power -=2;
+                        CardDatabase.CRDeck[clima.displayid].power -=2;
                     }
                 }
             }    
@@ -300,9 +300,9 @@ public class Effects : MonoBehaviour
                     CardDisplay clima = card.GetComponent<CardDisplay>();
                     if(clima.climabool && clima.cardtype != "Oro")
                     {
-                        CardDatabase.cards[clima.displayid].climabool = false;
+                        CardDatabase.COCDeck[clima.id].climabool = false;
                         clima.climabool = false;
-                        CardDatabase.cards[clima.displayid].power -=2;
+                        CardDatabase.COCDeck[clima.id].power -=2;
                     }
                 }
             }
@@ -313,9 +313,9 @@ public class Effects : MonoBehaviour
                     CardDisplay clima = card.GetComponent<CardDisplay>();
                     if(clima.climabool && clima.cardtype != "Oro")
                     {
-                        CardDatabase.cards[clima.displayid].climabool = false;
+                        CardDatabase.CRDeck[clima.id].climabool = false;
                         clima.climabool = false;
-                        CardDatabase.cards[clima.displayid].power -=2;
+                        CardDatabase.CRDeck[clima.id].power -=2;
                     }
                 }
             }
@@ -336,8 +336,8 @@ public class Effects : MonoBehaviour
                             CardDisplay aum = card.GetComponent<CardDisplay>();
                             if(aum.aumentobool && aum.cardtype != "Oro")
                             {
-                                CardDatabase.cards[aum.displayid].aumentobool = false;
-                                CardDatabase.cards[aum.displayid].power += 2;
+                                CardDatabase.COCDeck[aum.id].aumentobool = false;
+                                CardDatabase.COCDeck[aum.id].power += 2;
                             }
                         }
                     }
@@ -356,8 +356,8 @@ public class Effects : MonoBehaviour
                             CardDisplay aum = card.GetComponent<CardDisplay>();
                             if(aum.aumentobool && aum.cardtype != "Oro")
                             {
-                                CardDatabase.cards[aum.displayid].aumentobool = false;
-                                CardDatabase.cards[aum.displayid].power += 2;
+                                CardDatabase.CRDeck[aum.id].aumentobool = false;
+                                CardDatabase.CRDeck[aum.id].power += 2;
                             }
                         }
                     }

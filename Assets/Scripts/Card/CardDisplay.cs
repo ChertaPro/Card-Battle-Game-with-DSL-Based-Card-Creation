@@ -38,14 +38,20 @@ public class CardDisplay : MonoBehaviour
     void Start()
     {
         DisplayHand();
+        DisplayLeader();
         keepingbool = false;
         backuppower = new List<int?>();
-        if(CardDatabase.cards.Count > 0)
+        if(CardDatabase.COCDeck.Count > 0 && CardDatabase.CRDeck.Count > 0)
         {
-            foreach (Card card in CardDatabase.cards)
+            foreach (Card card in CardDatabase.COCDeck)
             {
                 backuppower.Add(card.power);
             }
+            foreach (Card card in CardDatabase.CRDeck)
+            {
+                backuppower.Add(card.power);
+            }
+
         }
         
 
@@ -63,13 +69,10 @@ public class CardDisplay : MonoBehaviour
     }
     void Display()
     {
-        COCHand = GameObject.Find("COCHand");
-        CRHand = GameObject.Find("CRHand");
-        displaycard = CardDatabase.cards[displayid];
         id = displaycard.id;
         cardname = displaycard.cardname;
         cardtype = displaycard.cardtype;
-        attack_type = displaycard.attack_type;
+        attack_type = displaycard.range;
         power = displaycard.power;
         effect = displaycard.effect;
         spriteimage = displaycard.spriteimage;
@@ -79,52 +82,59 @@ public class CardDisplay : MonoBehaviour
         
     }
 
+    void DisplayLeader()
+    {
+        GameObject leadercoc = CardDatabase.player1.Leader.transform.GetChild(0).gameObject;
+        CardDisplay cocdisplay = leadercoc.GetComponent<CardDisplay>();
+        cocdisplay.displaycard = CardDatabase.Leaders[0];
+        GameObject leadercr = CardDatabase.player2.Leader.transform.GetChild(0).gameObject;
+        CardDisplay crdisplay = leadercr.GetComponent<CardDisplay>();
+        crdisplay.displaycard = CardDatabase.Leaders[1];
+    }
     void DisplayHand()
     {
-        COCHand = GameObject.Find("COCHand");
-        CRHand = GameObject.Find("CRHand");
-        if (this.transform.parent == COCHand.transform)
+        if (this.transform.parent == CardDatabase.player1.Hand.transform)
         {
             GameObject clone = gameObject;
-            displayid = COCDeck.Staticdeck1[0].id;
-            COCDeck.Staticdeck1.RemoveAt(0);
+            displaycard = CardDatabase.COCDeck[0];
+            CardDatabase.COCDeck.RemoveAt(0);
             coccardback = false;
             crcardback = false;            
         }
-        if (this.transform.parent == CRHand.transform)
+        if (this.transform.parent == CardDatabase.player2.Hand.transform)
         {
             GameObject clone = gameObject;
-            displayid = CRDeck.Staticdeck2[0].id;
-            CRDeck.Staticdeck2.RemoveAt(0);
+            displaycard = CardDatabase.CRDeck[0];
+            CardDatabase.CRDeck.RemoveAt(0);
             coccardback = false;
             crcardback = false;
         }
     }
     void DisplayCardBack()
     {
-        if (TurnSystem.turn == 1 && gameObject.transform.parent == CRHand.transform)
+        if (TurnSystem.turn == 1 && gameObject.transform.parent == CardDatabase.player2.Hand.transform)
         {
             crcardback = true;
         }
-        if (TurnSystem.turn == 1 && gameObject.transform.parent == COCHand.transform)
+        if (TurnSystem.turn == 1 && gameObject.transform.parent == CardDatabase.player1.Hand.transform)
         {
             coccardback = false;
             crcardback = false;
         }
-        if (TurnSystem.turn == 0 && gameObject.transform.parent == COCHand.transform)
+        if (TurnSystem.turn == 0 && gameObject.transform.parent == CardDatabase.player1.Hand.transform)
         {
             coccardback = true;
         }
-        if (TurnSystem.turn == 0 && gameObject.transform.parent == CRHand.transform)
+        if (TurnSystem.turn == 0 && gameObject.transform.parent == CardDatabase.player2.Hand.transform)
         {
             coccardback = false;
             crcardback = false;
         }
-        if (TurnSystem.turn == 2 && gameObject.transform.parent == COCHand.transform)
+        if (TurnSystem.turn == 2 && gameObject.transform.parent == CardDatabase.player1.Hand.transform)
         {
             coccardback = true;
         }
-        if (TurnSystem.turn == 2 && gameObject.transform.parent == CRHand.transform)
+        if (TurnSystem.turn == 2 && gameObject.transform.parent == CardDatabase.player2.Hand.transform)
         {
             crcardback = true;
         }
@@ -132,20 +142,11 @@ public class CardDisplay : MonoBehaviour
     void Gaveyard()
     {
         
-        GameObject COCGraveyard = GameObject.Find("COCGraveyard");
-        GameObject CRGraveyard = GameObject.Find("CRGraveyard");
-        if (gameObject.transform.parent == COCGraveyard.transform || gameObject.transform.parent == CRGraveyard.transform)
+        if (gameObject.transform.parent == CardDatabase.player1.Graveyard.transform && effect == "melee")
         {
-            CardDatabase.cards[displayid].power = backuppower[displayid];
-            CardDatabase.cards[displayid].aumentobool = true;
-            CardDatabase.cards[displayid].climabool = true;
-            Destroy(gameObject,1.3f);
-        }
-        if (gameObject.transform.parent == COCGraveyard.transform && effect == "melee")
-        {
-            foreach(Card card in CardDatabase.cards)
+            foreach(Card card in CardDatabase.COCDeck)
             {
-                if (card.attack_type !=null)
+                if (card.range !=null)
                 {
                     card.climabool = true;
                     card.power = backuppower[card.id];
@@ -153,11 +154,11 @@ public class CardDisplay : MonoBehaviour
                 }
             }
         }
-        if (gameObject.transform.parent == COCGraveyard.transform && effect == "range")
+        if (gameObject.transform.parent == CardDatabase.player1.Graveyard.transform && effect == "range")
         {
-            foreach(Card card in CardDatabase.cards)
+            foreach(Card card in CardDatabase.COCDeck)
             {
-                if (card.attack_type !=null)
+                if (card.range !=null)
                 {
                     card.climabool = true;
                     card.power = backuppower[card.id];
@@ -165,11 +166,11 @@ public class CardDisplay : MonoBehaviour
                 }
             }
         }
-        if (gameObject.transform.parent == CRGraveyard.transform && effect == "melee")
+        if (gameObject.transform.parent == CardDatabase.player2.Graveyard.transform && effect == "melee")
         {
-            foreach(Card card in CardDatabase.cards)
+            foreach(Card card in CardDatabase.CRDeck)
             {
-                if (card.attack_type !=null)
+                if (card.range !=null)
                 {
                     card.climabool = true;
                     card.power = backuppower[card.id];
@@ -177,11 +178,11 @@ public class CardDisplay : MonoBehaviour
                 }
             }
         }
-        if (gameObject.transform.parent == CRGraveyard.transform && effect == "range")
+        if (gameObject.transform.parent == CardDatabase.player2.Graveyard.transform && effect == "range")
         {
-            foreach(Card card in CardDatabase.cards)
+            foreach(Card card in CardDatabase.CRDeck)
             {
-                if (card.attack_type !=null)
+                if (card.range !=null)
                 {
                     card.climabool = true;
                     card.power = backuppower[card.id];
@@ -189,9 +190,18 @@ public class CardDisplay : MonoBehaviour
                 }
             }
         }
-        if (gameObject.transform.parent == COCGraveyard && effect == "bonus")
+        if (gameObject.transform.parent == CardDatabase.player1.Graveyard.transform && effect == "bonus")
         {
-            foreach(Card card in CardDatabase.cards)
+            foreach(Card card in CardDatabase.COCDeck)
+            {
+                card.aumentobool = true;
+                card.power = backuppower[card.id];
+                Destroy(gameObject,1.3f);
+            }
+        }
+        if (gameObject.transform.parent == CardDatabase.player2.Graveyard.transform && effect == "bonus")
+        {
+            foreach(Card card in CardDatabase.COCDeck)
             {
                 card.aumentobool = true;
                 card.power = backuppower[card.id];

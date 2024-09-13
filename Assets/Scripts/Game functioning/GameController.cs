@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameController : MonoBehaviour
@@ -10,7 +11,7 @@ public class GameController : MonoBehaviour
     public GameObject CRHand;
     public GameObject ClimaZone;
     public GameObject Field;
-    public List<string> aumentos = new List<string>();
+    public List<GameObject> aumentos = new List<GameObject>();
     public TextMeshProUGUI COCPowerCounter;
     public TextMeshProUGUI CRPowerCounter;
     public int? COCpower;
@@ -22,16 +23,16 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        COCHand = GameObject.Find("COCHand");
-        CRHand = GameObject.Find("CRHand");
+        Shuffle(CardDatabase.COCDeck);
+        Shuffle(CardDatabase.CRDeck);
         StartCoroutine("DrawCardsWithDelay");
         ClimaZone = GameObject.Find("ClimaZone");
-        aumentos.Add("COCAumento (M)");
-        aumentos.Add("COCAumento (R)");
-        aumentos.Add("COCAumento (S)");
-        aumentos.Add("CRAumento (M)");
-        aumentos.Add("CRAumento (R)");
-        aumentos.Add("CRAumento (S)");
+        aumentos.Add(CardDatabase.player1.Aumento_M);
+        aumentos.Add(CardDatabase.player1.Aumento_R);
+        aumentos.Add(CardDatabase.player1.Aumento_S);
+        aumentos.Add(CardDatabase.player2.Aumento_M);
+        aumentos.Add(CardDatabase.player2.Aumento_R);
+        aumentos.Add(CardDatabase.player2.Aumento_S);
     }
 
     // Update is called once per frame
@@ -45,15 +46,29 @@ public class GameController : MonoBehaviour
         staticCRpower = CRpower;
     }
 
+    public static void Shuffle(List<Card> cards)
+    {
+        int n = cards.Count;
+
+        // Algoritmo de Fisher-Yates para mezclar la lista
+        for (int i = n - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            // Intercambiar cards[i] con cards[j]
+            Card temp = cards[i];
+            cards[i] = cards[j];
+            cards[j] = temp;
+        }
+    }
     public void COCDraw()
     {   
         GameObject COCcard = Instantiate(card,new Vector3(0, 0, 0), Quaternion.identity);
-        COCcard.transform.SetParent(COCHand.transform,false);
+        COCcard.transform.SetParent(CardDatabase.player1.Hand.transform,false);
     }
     public void CRDraw()
     {
         GameObject CRcard = Instantiate(card,new Vector3(0, 0, 0), Quaternion.identity);
-        CRcard.transform.SetParent(CRHand.transform,false); 
+        CRcard.transform.SetParent(CardDatabase.player2.Hand.transform,false); 
     }
     IEnumerator DrawCardsWithDelay()
     {
@@ -68,27 +83,19 @@ public class GameController : MonoBehaviour
 
     void PowerCounter()
     {
-        GameObject COCMelee = GameObject.Find("COCMelee");
-        GameObject COCRange = GameObject.Find("COCRange");
-        GameObject COCSiege = GameObject.Find("COCSiege");
-        GameObject CRMelee = GameObject.Find("CRMelee");
-        GameObject CRRange = GameObject.Find("CRRange");
-        GameObject CRSiege = GameObject.Find("CRSiege");
         //Accediendo a los contadores
-        GameObject goCOCPowerCounter = GameObject.Find("COCPowerCounter");
-        GameObject goCRPowerCounter = GameObject.Find("CRPowerCounter");
-        COCPowerCounter = goCOCPowerCounter.GetComponent<TextMeshProUGUI>();
-        CRPowerCounter = goCRPowerCounter.GetComponent<TextMeshProUGUI>();
+        COCPowerCounter = CardDatabase.player1.TotalPower.GetComponent<TextMeshProUGUI>();
+        CRPowerCounter = CardDatabase.player2.TotalPower.GetComponent<TextMeshProUGUI>();
 
         COCpower = 0;
         CRpower = 0;
 
-        COCpower += SumPower(COCMelee);
-        COCpower += SumPower(COCRange);
-        COCpower += SumPower(COCSiege);
-        CRpower += SumPower(CRMelee);
-        CRpower += SumPower(CRRange);
-        CRpower += SumPower(CRSiege);
+        COCpower += SumPower(CardDatabase.player1.Melee);
+        COCpower += SumPower(CardDatabase.player1.Range);
+        COCpower += SumPower(CardDatabase.player1.Siege);
+        CRpower += SumPower(CardDatabase.player2.Melee);
+        CRpower += SumPower(CardDatabase.player2.Range);
+        CRpower += SumPower(CardDatabase.player2.Siege);
 
         COCPowerCounter.text = COCpower.ToString();
         CRPowerCounter.text = CRpower.ToString();
@@ -126,9 +133,9 @@ public class GameController : MonoBehaviour
     }
     void Aumento()
     {
-        foreach(string aumento in aumentos)
+        foreach(GameObject aumento in aumentos)
         {
-            Field = GameObject.Find(aumento);
+            Field =aumento;
             if (Field.transform.childCount > 0)
             {
                 Transform child = Field.transform.GetChild(0);
@@ -143,7 +150,7 @@ public class GameController : MonoBehaviour
     {
         int COC = 0;
         int CR = 0;
-        foreach(Transform card in COCHand.transform)
+        foreach(Transform card in CardDatabase.player1.Hand.transform)
         {
             COC += 1;
             if (COC > 10)
@@ -151,7 +158,7 @@ public class GameController : MonoBehaviour
                 Destroy(card.gameObject,1.5f);
             }
         }
-        foreach(Transform card in CRHand.transform)
+        foreach(Transform card in CardDatabase.player2.Hand.transform)
         {
             CR += 1;
             if (CR > 10)
