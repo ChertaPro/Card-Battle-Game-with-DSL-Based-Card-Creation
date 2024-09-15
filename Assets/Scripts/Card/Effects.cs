@@ -96,10 +96,10 @@ public class Effects : MonoBehaviour
                     CardDisplay type = aumento.GetComponent<CardDisplay>();
                     if (type.cardtype == "Aumento")
                     {
-                        List<string> aumentos = CardEvents.COCaumentos;
+                        List<GameObject> aumentos = CardEvents.COCaumentos;
                         int random ;
                         random = Random.Range(0, aumentos.Count);
-                        Field = GameObject.Find(aumentos[random]);
+                        Field = aumentos[random];
                         aumento.transform.SetParent(Field.transform, false);
                         CardEvents.COCaumentos.RemoveAt(random);
                         break;
@@ -114,10 +114,10 @@ public class Effects : MonoBehaviour
                     CardDisplay type = aumento.GetComponent<CardDisplay>();
                     if (type.cardtype == "Aumento")
                     {
-                        List<string> aumentos = CardEvents.CRaumentos;
+                        List<GameObject> aumentos = CardEvents.CRaumentos;
                         int random ;
                         random = Random.Range(0, aumentos.Count);
-                        Field = GameObject.Find(aumentos[random]);
+                        Field = aumentos[random];
                         aumento.transform.SetParent(Field.transform, false);
                         CardEvents.CRaumentos.RemoveAt(random);
                         break;
@@ -217,19 +217,29 @@ public class Effects : MonoBehaviour
                 Transform destroy = go.transform;
                 CardDisplay destroypower = destroy.GetComponent<CardDisplay>();
                 destroypower.power = 100;
-                for (int i = 3;i<6;i++)
+
+                foreach(Transform card in GameElements.Field(2))
                 {
-                    Field = GameObject.Find(zones[i]);
-                    foreach (Transform card in Field.transform)
-                    {
-                        CardDisplay power = card.GetComponent<CardDisplay>();
+                    CardDisplay power = card.GetComponent<CardDisplay>();
                         if(power.power < destroypower.power && power.cardtype != "Oro")
                         {
                             destroypower.power = power.power;
-                            destroy = card;
+                            destroy = card.transform;
                         }
-                    }
                 }
+                // for (int i = 3;i<6;i++)
+                // {
+                //     Field = GameObject.Find(zones[i]);
+                //     foreach (Transform card in Field.transform)
+                //     {
+                //         CardDisplay power = card.GetComponent<CardDisplay>();
+                //         if(power.power < destroypower.power && power.cardtype != "Oro")
+                //         {
+                //             destroypower.power = power.power;
+                //             destroy = card;
+                //         }
+                //     }
+                // }
                 
                 destroy.SetParent(CRgraveyard.transform,false);    
             }
@@ -239,19 +249,28 @@ public class Effects : MonoBehaviour
                 Transform destroy = go.transform;
                 CardDisplay destroypower = destroy.GetComponent<CardDisplay>();
                 destroypower.power = 100;
-                for (int i = 0;i<3;i++)
+                foreach(Transform card in GameElements.Field(1))
                 {
-                    Field = GameObject.Find(zones[i]);
-                    foreach (Transform card in Field.transform)
-                    {
-                        CardDisplay power = card.GetComponent<CardDisplay>();
+                    CardDisplay power = card.GetComponent<CardDisplay>();
                         if(power.power < destroypower.power && power.cardtype != "Oro")
                         {
                             destroypower.power = power.power;
-                            destroy = card;
+                            destroy = card.transform;
                         }
-                    }
                 }
+                // for (int i = 0;i<3;i++)
+                // {
+                //     Field = GameObject.Find(zones[i]);
+                //     foreach (Transform card in Field.transform)
+                //     {
+                //         CardDisplay power = card.GetComponent<CardDisplay>();
+                //         if(power.power < destroypower.power && power.cardtype != "Oro")
+                //         {
+                //             destroypower.power = power.power;
+                //             destroy = card;
+                //         }
+                //     }
+                // }
                 destroy.SetParent(COCgraveyard.transform,false);    
             }
         }
@@ -267,9 +286,9 @@ public class Effects : MonoBehaviour
                     CardDisplay clima = card.GetComponent<CardDisplay>();
                     if(clima.climabool && clima.cardtype != "Oro")
                     {
-                        CardDatabase.COCDeck[clima.displayid].climabool = false;
+                        clima.displaycard.climabool = false;
+                        clima.displaycard.power -=2;
                         clima.climabool = false;
-                        CardDatabase.COCDeck[clima.displayid].power -=2;
                     }
                 }
             } 
@@ -280,9 +299,12 @@ public class Effects : MonoBehaviour
                     CardDisplay clima = card.GetComponent<CardDisplay>();
                     if(clima.climabool && clima.cardtype != "Oro")
                     {
-                        CardDatabase.CRDeck[clima.displayid].climabool = false;
+                        clima.displaycard.climabool = false;
+                        clima.displaycard.power -=2;
                         clima.climabool = false;
-                        CardDatabase.CRDeck[clima.displayid].power -=2;
+                        // CardDatabase.CRDeck[clima.displayid].climabool = false;
+                        // clima.climabool = false;
+                        // CardDatabase.CRDeck[clima.displayid].power -=2;
                     }
                 }
             }    
@@ -300,9 +322,12 @@ public class Effects : MonoBehaviour
                     CardDisplay clima = card.GetComponent<CardDisplay>();
                     if(clima.climabool && clima.cardtype != "Oro")
                     {
-                        CardDatabase.COCDeck[clima.id].climabool = false;
+                        clima.displaycard.climabool = false;
+                        clima.displaycard.power -=2;
                         clima.climabool = false;
-                        CardDatabase.COCDeck[clima.id].power -=2;
+                        // CardDatabase.COCDeck[clima.id].climabool = false;
+                        // clima.climabool = false;
+                        // CardDatabase.COCDeck[clima.id].power -=2;
                     }
                 }
             }
@@ -313,9 +338,12 @@ public class Effects : MonoBehaviour
                     CardDisplay clima = card.GetComponent<CardDisplay>();
                     if(clima.climabool && clima.cardtype != "Oro")
                     {
-                        CardDatabase.CRDeck[clima.id].climabool = false;
+                        clima.displaycard.climabool = false;
+                        clima.displaycard.power -=2;
                         clima.climabool = false;
-                        CardDatabase.CRDeck[clima.id].power -=2;
+                        // CardDatabase.CRDeck[clima.id].climabool = false;
+                        // clima.climabool = false;
+                        // CardDatabase.CRDeck[clima.id].power -=2;
                     }
                 }
             }
@@ -336,8 +364,11 @@ public class Effects : MonoBehaviour
                             CardDisplay aum = card.GetComponent<CardDisplay>();
                             if(aum.aumentobool && aum.cardtype != "Oro")
                             {
-                                CardDatabase.COCDeck[aum.id].aumentobool = false;
-                                CardDatabase.COCDeck[aum.id].power += 2;
+                                aum.displaycard.aumentobool = false;
+                                aum.displaycard.power +=2;
+                                aum.aumentobool = false;
+                                // CardDatabase.COCDeck[aum.id].aumentobool = false;
+                                // CardDatabase.COCDeck[aum.id].power += 2;
                             }
                         }
                     }
@@ -356,8 +387,11 @@ public class Effects : MonoBehaviour
                             CardDisplay aum = card.GetComponent<CardDisplay>();
                             if(aum.aumentobool && aum.cardtype != "Oro")
                             {
-                                CardDatabase.CRDeck[aum.id].aumentobool = false;
-                                CardDatabase.CRDeck[aum.id].power += 2;
+                                aum.displaycard.aumentobool = false;
+                                aum.displaycard.power +=2;
+                                aum.aumentobool = false;
+                                // CardDatabase.CRDeck[aum.id].aumentobool = false;
+                                // CardDatabase.CRDeck[aum.id].power += 2;
                             }
                         }
                     }

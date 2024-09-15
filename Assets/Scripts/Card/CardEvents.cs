@@ -11,8 +11,8 @@ public class CardEvents : MonoBehaviour
     public GameObject Playercard;
     [HideInInspector]
     public GameObject Field;
-    public static List<string> COCaumentos = new List<string>();
-    public static List<string> CRaumentos = new List<string>();    
+    public static List<GameObject> COCaumentos = new List<GameObject>();
+    public static List<GameObject> CRaumentos = new List<GameObject>();    
     
     public GameObject Cardstats;
     public TextMeshProUGUI Powerstat;
@@ -23,12 +23,12 @@ public class CardEvents : MonoBehaviour
 
     private void Start() 
     {
-        COCaumentos.Add("COCAumento (M)");
-        COCaumentos.Add("COCAumento (R)");
-        COCaumentos.Add("COCAumento (S)");
-        CRaumentos.Add("CRAumento (M)");
-        CRaumentos.Add("CRAumento (R)");
-        CRaumentos.Add("CRAumento (S)");
+        COCaumentos.Add(CardDatabase.player1.Aumento_M);
+        COCaumentos.Add(CardDatabase.player1.Aumento_R);
+        COCaumentos.Add(CardDatabase.player1.Aumento_S);
+        CRaumentos.Add(CardDatabase.player2.Aumento_M);
+        CRaumentos.Add(CardDatabase.player2.Aumento_R);
+        CRaumentos.Add(CardDatabase.player2.Aumento_S);
     }
     public void Click()
     {
@@ -37,7 +37,7 @@ public class CardEvents : MonoBehaviour
         CardDisplay keyword = Playercard.GetComponent<CardDisplay>();
         Effects activate = Playercard.GetComponent<Effects>();
                 
-        if (Playercard.transform.parent == COCHand.transform && TurnSystem.turn ==1 )
+        if (Playercard.transform.parent == CardDatabase.player1.Hand.transform && TurnSystem.turn ==1 )
         {
             activate.Effect(keyword.effect,Playercard);
             CardDisplay cardDisplay = Playercard.GetComponent<CardDisplay>();
@@ -49,48 +49,39 @@ public class CardEvents : MonoBehaviour
 
                 if (row == "Melee" )
                 {
-                    Field = GameObject.Find("COCMelee");
+                    Field = CardDatabase.player1.Melee;
                     Playercard.transform.SetParent(Field.transform, false);
                 }
                 else if (row == "Ranged" )
                 {
-                    Field = GameObject.Find("COCRange");
+                    Field = CardDatabase.player1.Range;
                     Playercard.transform.SetParent(Field.transform, false);
                 }
                 else if (row == "Siege" )
                 {
-                    Field = GameObject.Find("COCSiege");
+                    Field = CardDatabase.player1.Siege;
                     Playercard.transform.SetParent(Field.transform, false);
                 }
             }    
             else if (cardDisplay.cardtype == "Clima" )
             {
-                Field = GameObject.Find("ClimaZone");
+                Field = CardDatabase.player1.Clima;
                 Playercard.transform.SetParent(Field.transform, false);
             }
             else if (cardDisplay.cardtype == "Aumento" )
             {
-                List<string> aumentos = COCaumentos;
+                List<GameObject> aumentos = COCaumentos;
                 int random;
                 random = Random.Range(0, aumentos.Count);
-                Field = GameObject.Find(aumentos[random]);
+                Field = aumentos[random];
                 Playercard.transform.SetParent(Field.transform, false);
                 COCaumentos.RemoveAt(random);
             }
-            else if (cardDisplay.cardtype == "Despeje")
-            {
-
-            }
-            else if (cardDisplay.cardtype == "Señuelo")
-            {
-
-            }
-            
             TurnSystem.turn = 0;
 
         }
 
-        if (Playercard.transform.parent == CRHand.transform && TurnSystem.turn == 0)
+        if (Playercard.transform.parent == CardDatabase.player2.Hand.transform && TurnSystem.turn == 0)
         {
             activate.Effect(keyword.effect,Playercard);
             CardDisplay cardDisplay = Playercard.GetComponent<CardDisplay>();
@@ -102,41 +93,33 @@ public class CardEvents : MonoBehaviour
 
                 if (row == "Melee" )
                 {
-                    Field = GameObject.Find("CRMelee");
+                    Field = CardDatabase.player2.Melee;
                     Playercard.transform.SetParent(Field.transform, false);
                 }
                 else if (row == "Ranged" )
                 {
-                    Field = GameObject.Find("CRRange");
+                    Field = CardDatabase.player2.Range;
                     Playercard.transform.SetParent(Field.transform, false);
                 }
                 else if (row == "Siege" )
                 {
-                    Field = GameObject.Find("CRSiege");
+                    Field = CardDatabase.player2.Siege;
                     Playercard.transform.SetParent(Field.transform, false);
                 }
             }
             else if (cardDisplay.cardtype == "Clima" )
             {
-                Field = GameObject.Find("ClimaZone");
+                Field = CardDatabase.player2.Clima;;
                 Playercard.transform.SetParent(Field.transform, false);
             }
             else if (cardDisplay.cardtype == "Aumento" )
             {
-                List<string> aumentos = CRaumentos;
+                List<GameObject> aumentos = CRaumentos;
                 int random ;
                 random = Random.Range(0, aumentos.Count);
-                Field = GameObject.Find(aumentos[random]);
+                Field = aumentos[random];
                 Playercard.transform.SetParent(Field.transform, false);
                 CRaumentos.RemoveAt(random);
-            }
-            else if (cardDisplay.cardtype == "Despeje")
-            {
-
-            }
-            else if (cardDisplay.cardtype == "Señuelo")
-            {
-                
             }
             TurnSystem.turn = 1;
         }
@@ -145,8 +128,8 @@ public class CardEvents : MonoBehaviour
     public void HoverEnter()
     {
         Cardstats = GameObject.Find("Stats");
-        GameObject COCHand = GameObject.Find("COCHand");
-        GameObject CRHand = GameObject.Find("CRHand");
+        GameObject COCHand = CardDatabase.player1.Hand;;
+        GameObject CRHand = CardDatabase.player2.Hand;;
         Cardimage = Cardstats.GetComponent<Image>();
         GameObject hideObject = Cardstats.transform.Find("Hide")?.gameObject;
         Powerstat = hideObject.transform.Find("Power")?.GetComponent<TextMeshProUGUI>();

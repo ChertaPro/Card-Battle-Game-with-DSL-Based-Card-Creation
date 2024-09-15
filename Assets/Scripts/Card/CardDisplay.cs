@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class CardDisplay : MonoBehaviour
 {
@@ -11,8 +12,10 @@ public class CardDisplay : MonoBehaviour
     public Card displaycard;
     public int displayid;
     public int id;
+    public int owner;
     public string cardname;
     public string cardtype;
+    public string faction;
     public List<string> attack_type;
     public int? power;
     public string effect;
@@ -70,8 +73,10 @@ public class CardDisplay : MonoBehaviour
     void Display()
     {
         id = displaycard.id;
+        owner = displaycard.owner;
         cardname = displaycard.cardname;
         cardtype = displaycard.cardtype;
+        faction = displaycard.faction;
         attack_type = displaycard.range;
         power = displaycard.power;
         effect = displaycard.effect;
@@ -141,41 +146,55 @@ public class CardDisplay : MonoBehaviour
     }
     void Gaveyard()
     {
-        
         if (gameObject.transform.parent == CardDatabase.player1.Graveyard.transform && effect == "melee")
         {
-            foreach(Card card in CardDatabase.COCDeck)
+            foreach(Transform card in GameElements.Board())
             {
-                if (card.range !=null)
+                CardDisplay melee = card.GetComponent<CardDisplay>();
+                melee.climabool = true;
+                if(melee.faction == "COC")
                 {
-                    card.climabool = true;
-                    card.power = backuppower[card.id];
-                    Destroy(gameObject,1.3f);
+                    melee.power = CardDatabase.COCbackup[melee.id-1].power;
                 }
+                else
+                {
+                    melee.power = CardDatabase.CRbackup[melee.id-1].power;
+                }
+                Destroy(gameObject,1.3f);
             }
         }
         if (gameObject.transform.parent == CardDatabase.player1.Graveyard.transform && effect == "range")
         {
-            foreach(Card card in CardDatabase.COCDeck)
+            foreach(Transform card in GameElements.Board())
             {
-                if (card.range !=null)
+                CardDisplay range = card.GetComponent<CardDisplay>();
+                range.climabool = true;
+                if(range.faction == "COC")
                 {
-                    card.climabool = true;
-                    card.power = backuppower[card.id];
-                    Destroy(gameObject,1.3f);
+                    range.power = CardDatabase.COCbackup[range.id-1].power;
                 }
+                else
+                {
+                    range.power = CardDatabase.CRbackup[range.id-1].power;
+                }
+                Destroy(gameObject,1.3f);
             }
         }
         if (gameObject.transform.parent == CardDatabase.player2.Graveyard.transform && effect == "melee")
         {
-            foreach(Card card in CardDatabase.CRDeck)
+            foreach(Transform card in GameElements.Board())
             {
-                if (card.range !=null)
+                CardDisplay melee = card.GetComponent<CardDisplay>();
+                melee.climabool = true;
+                if(melee.faction == "COC")
                 {
-                    card.climabool = true;
-                    card.power = backuppower[card.id];
-                    Destroy(gameObject,1.3f);
+                    melee.power = CardDatabase.COCbackup[melee.id-1].power;
                 }
+                else
+                {
+                    melee.power = CardDatabase.CRbackup[melee.id-1].power;
+                }
+                Destroy(gameObject,1.3f);
             }
         }
         if (gameObject.transform.parent == CardDatabase.player2.Graveyard.transform && effect == "range")
@@ -192,21 +211,41 @@ public class CardDisplay : MonoBehaviour
         }
         if (gameObject.transform.parent == CardDatabase.player1.Graveyard.transform && effect == "bonus")
         {
-            foreach(Card card in CardDatabase.COCDeck)
+            foreach(Transform card in GameElements.Board())
             {
-                card.aumentobool = true;
-                card.power = backuppower[card.id];
+                CardDisplay aumento = card.GetComponent<CardDisplay>();
+                aumento.aumentobool = true;
+                if(aumento.faction == "COC")
+                {
+                    aumento.power = CardDatabase.COCbackup[aumento.id-1].power;
+                }
+                else
+                {
+                    aumento.power = CardDatabase.CRbackup[aumento.id-1].power;
+                }
                 Destroy(gameObject,1.3f);
-            }
+            }    
         }
         if (gameObject.transform.parent == CardDatabase.player2.Graveyard.transform && effect == "bonus")
         {
-            foreach(Card card in CardDatabase.COCDeck)
+            foreach(Transform card in GameElements.Board())
             {
-                card.aumentobool = true;
-                card.power = backuppower[card.id];
+                CardDisplay aumento = card.GetComponent<CardDisplay>();
+                aumento.aumentobool = true;
+                if(aumento.faction == "COC")
+                {
+                    aumento.power = CardDatabase.COCbackup[aumento.id-1].power;
+                }
+                else
+                {
+                    aumento.power = CardDatabase.CRbackup[aumento.id-1].power;
+                }
                 Destroy(gameObject,1.3f);
             }
+        }
+        if (gameObject.transform.parent == CardDatabase.player1.Graveyard.transform || gameObject.transform.parent == CardDatabase.player2.Graveyard.transform)
+        {
+            Destroy(gameObject,1.3f);
         }
     }
 }
