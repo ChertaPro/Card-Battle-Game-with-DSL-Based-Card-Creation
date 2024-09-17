@@ -10,14 +10,17 @@ public class Lexer
     //Reserved words
     private static Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>
     {
+        {"Number", TokenType.Number},
+        {"String", TokenType.String},
+        {"Bool", TokenType.Bool},
+        {"false", TokenType.False},
+        {"true", TokenType.True},
         {"card", TokenType.Card},
         {"effect", TokenType.effect},
         //Effect:
         {"Name", TokenType.Name},
         {"Params", TokenType.Params},
         {"Action", TokenType.Action},
-        {"targets", TokenType.Targets},
-        {"context", TokenType.Context},
         //Loops:
         {"while", TokenType.While},
         {"for", TokenType.For},
@@ -217,7 +220,7 @@ public class Lexer
         // alcanzo "
         advance();
         object value = source.Substring(start + 1, current - start - 2);
-        AddToken(TokenType.String, value);
+        AddToken(TokenType.StringLiteral, value);
     }
 
     //para saber si es un numero
@@ -230,7 +233,7 @@ public class Lexer
     {
         //recorreindo el numero 
         while (IsDigit(peek())) advance();
-        AddToken(TokenType.Number, int.Parse(source.Substring(start, current - start)));
+        AddToken(TokenType.NumberLiteral, int.Parse(source.Substring(start, current - start)));
     }
 
     bool IsAlpha(char c)
@@ -280,6 +283,7 @@ public enum TokenType
     MinusMinus, //Decremento --
     Mul, // multiplicacion *
     MulEqual, // multiplicacion y asigancion *=
+    SlashEqual, // division y asignacion /=
     Equal, //Signo de igual =
     EqualEqual, //Comparación de igualdad ==
     Arrow, //Flecha => 
@@ -294,9 +298,10 @@ public enum TokenType
 
     //3. Literals
     Identifier, //Identificadores, que son nombres de variables, funciones, etc
-    String, //Literales de cadena, e.g., "example"
-    Number, //Literales numéricos, e.g., 42
-    Bool, //Literales booleanos, true o false
+    StringLiteral, //Literales de cadena, e.g., "example"
+    NumberLiteral, //Literales numéricos, e.g., 42
+    True, // Palabra clave para detectar true
+    False,// lo mismo para false
 
     //4. Reserved Words
     Card, //Palabra clave para definir una carta
@@ -306,9 +311,7 @@ public enum TokenType
     Name, //Nombre de la carta o efecto
     Params, //Parámetros del efecto
     Action, //Acción que realiza el efecto
-    Targets, //Objetivos del efecto
-    Context, //Contexto en el que se aplica el efecto
-
+    
     //Loops:
     While, //Bucle while
     For, //Bucle for
@@ -324,6 +327,7 @@ public enum TokenType
     Field, //Campo (diminutivo)
     Graveyard, //Cementerio (diminutivo)
     Deck, //Mazo (diminutivo)
+    Board, // Tablero
 
     //Methods:
     Push, //Método para añadir elementos al tope de la lista
@@ -334,6 +338,7 @@ public enum TokenType
     Find, //Método para encontrar un elemento
 
     //Card:
+    Owner, // Jugador que posee la carta
     Type, //Tipo de carta.
     Faction, //Facción de la carta
     Power, //Poder de la carta
@@ -347,7 +352,8 @@ public enum TokenType
     Single, //Selección de un único objetivo
     Predicate, //Condición para el efecto
     PostAction, //Acción a realizar después del efecto
-
+    //Types
+    Number, String, Bool,
     EOF //Indica el final del archivo
 }
 
