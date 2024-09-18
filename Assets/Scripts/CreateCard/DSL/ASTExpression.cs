@@ -40,6 +40,40 @@ public class Unary : IExpression
     }
 
 }
+public class Logical : IExpression
+{
+    public Logical(IExpression left, Token logicaloperator, IExpression right)
+    {
+        this.left = left;
+        this.logicaloperator = logicaloperator;
+        this.right = right;
+    }
+
+    public IExpression left;
+    public Token logicaloperator;
+    public IExpression right;
+
+    public object Accept(IVisitor visitor)
+    {
+        return visitor.VisitLogicalExpr(this);
+    }
+}
+public class Assign : IExpression
+{
+    public Assign(Token name, IExpression value)
+    {
+        this.name = name;
+        this.value = value;
+    }
+
+    public Token name;
+    public IExpression value;
+
+    public object Accept(IVisitor visitor)
+    {
+        return visitor.VisitAssignExpr(this);
+    }
+}
 public class Binary : IExpression
 {
     public IExpression left;
@@ -73,5 +107,20 @@ public class Grouping : IExpression
     }    
 }
 
+public class Variable : IExpression
+{
+    public Token name;
+    public IExpression initializer;
+
+    public Variable(Token name)
+    {
+        this.name = name;
+    }
+
+    public object Accept(IVisitor visitor)
+    {
+        return visitor.VisitVariableExpr(this);
+    }
+}
 
 

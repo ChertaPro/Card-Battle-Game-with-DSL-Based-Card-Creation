@@ -1,20 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using Mono.Cecil.Cil;
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
+using System;
+using System.Linq;
 // DSL.print();
 public static class DSL 
 {
+    static CompileButton console ;
+    private static  Interpreter interpreter = new Interpreter();
     static bool hadError = false;
+    static bool hadRuntimeError = false;
     public static void Error(int line, int column, string message) 
     {
         Report(line, column, "", message);
-        hadError = true;
     }
     public static void Report(int line, int column, string where, string message) 
     {
-        System.Console.WriteLine($"[Line {line}, Column {column}] Error {where}: " + message);
+        Debug.Log($"[Line {line}, Column {column}] Error {where}: " + message);
+        hadError = true;
     }
 
     public static void error(Token token, string message)
@@ -29,6 +34,49 @@ public static class DSL
         }
     }
 
-    
+    public static void runtimeError(RuntimeError error)
+    {
+        Console.Error.WriteLine(error.Message + 
+        "\n[line " + error.token.line + ", column " + error.token.column + "]");
+        hadRuntimeError = true;
+    }
+
+    public static void Compile(string code)
+    {   
+        console = GameObject.Find("Compile").GetComponent<CompileButton>();
+
+        hadError = false;
+
+        if (code == "")
+        {
+            Debug.LogError("Empty code");
+            Debug.LogError("Invalid code\n");
+            return;
+        }
+
+        Lexer lexer = new Lexer(code);
+
+        var tokens = lexer.ScanTokens();
+        // Debug.Log(code);
+        // foreach (var token in tokens)
+        // {
+        //     Debug.Log(token.ToString());
+        // }
+        if(hadError)
+        {
+            Debug.LogError("Invalid code\n");
+            return;
+        }
+
+        Parser parser = new Parser(tokens);
+
+        if(hadError){
+            Debug.LogError("Invalid code\n");
+            return;
+        }
+
+        Debug.Log("Successfull Compilation");
+    }
+
 }
 

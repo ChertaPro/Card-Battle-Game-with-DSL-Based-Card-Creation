@@ -2,38 +2,187 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
+using System.Xml;
+using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class Parser
 {
-    IExpression parse()
+    List<IStatement> parse()
     {
-        try
+        List<IStatement> statements= new List<IStatement>();
+
+        while (!IsAtEnd()) 
         {
-            return expression();
+            statements.Add(declaration());
         }
-        catch (ParseError error)
-        {
-            return null;
-        }
+        return statements;
     }
     public class ParseError : System.Exception
     {}  
-    List<Token> tokens;
+    public List<Token> tokens;
     int current = 0;
 
-    Parser(List<Token> tokens)
+    public Parser(List<Token> tokens)
     {
         this.tokens = tokens;
     }
 
     IExpression expression()
     {
-        return equality();
+        return assignment();
     }
 
+    IStatement declaration()
+    {
+        try
+        {
+            if( Match(TokenType.Identifier)) return VarDeclaration();
+            return statement();
+        }
+        catch(ParseError error)
+        {
+            synchronize();
+            return null;
+        }
+    }
+    IStatement statement()
+    {
+        if(Match(TokenType.For)) return forStatement();
+        if(Match(TokenType.While))  return whileStatement();
+        if(Match(TokenType.LeftBrace)) return new Block(block());
+        return expressionStatement();
+    }
+
+    IStatement forStatement()
+    {
+        consume(TokenType.LeftParen, "Expect '(' after 'for'.");
+        IStatement initializer;
+        if(Match(TokenType.Semicolon))
+        {
+            initializer = null;
+        }
+        else if (Match(TokenType.Identifier))
+        {
+            initializer = VarDeclaration();
+        }
+        else
+        {
+            initializer = expressionStatement();
+        }
+        IExpression condition = null;
+        if (!Check(TokenType.Semicolon))
+        {
+            condition = expression();
+        }
+        consume(TokenType.Semicolon, "Expect ';' after loop condition.");
+        IExpression increment = null;
+        if(!Check(TokenType.RightParen))
+        {
+            increment = expression();
+        }
+        consume(TokenType.RightParen, "Expect ')' after for clauses.");
+        IStatement body = statement();
+        if(increment != null)
+        {
+            body = new Block(new List<IStatement> { body, new Expression(increment) });
+        }
+        if (condition == null) condition = new Literal(true); // Si no hay condición, será `true` por defecto.
+        body = new While(condition, body);
+
+        if (initializer != null)
+        {
+            body = new Block(new List<IStatement> { initializer, body });
+        }
+
+        return body;
+    }
+    IStatement expressionStatement()
+    {
+        IExpression expr = expression();
+        consume(TokenType.Semicolon, "Expect ';' after expression.");
+        return new Expression(expr);
+    }
+
+    List<IStatement> block()
+    {
+        List<IStatement> statements = new List<IStatement>();
+
+        while(!Check(TokenType.RightBrace) && !IsAtEnd())
+        {
+            statements.Add(declaration());
+        }
+        consume(TokenType.RightBrace,  "Expect '}' after block.");
+        return statements;
+    }
+    IExpression assignment()
+    {
+        IExpression expr = or();
+        Token equal = previous();
+        if( Match(TokenType.Equal))
+        {
+            IExpression value = assignment();
+
+            if (expr is Variable)
+            {
+                Token name = ((Variable)expr).name;
+                return new Assign(name, value);
+            }
+        }
+
+        error(equal, "Invalid assignment target.");
+
+        return expr;
+    }
+
+    IExpression or()
+    {
+        IExpression expr = and();
+        while(Match(TokenType.Or))
+        {
+            Token logicaloperator = previous();
+            IExpression right = and();
+            expr = new Logical(expr,logicaloperator, right);
+        }
+        return expr;
+    }
+
+    IExpression and()
+    {
+        IExpression expr = equality();
+        while(Match(TokenType.And))
+        {
+            Token logicaloperator = previous();
+            IExpression right = equality();
+            expr = new Logical(expr,logicaloperator, right);
+        }
+        return expr;
+    }
+    IStatement VarDeclaration()
+    {
+        Token name = consume(TokenType.Identifier, "Expect variable name.");
+
+        IExpression initializer = null;
+        if(Match(TokenType.Equal))
+        {
+            initializer = expression();
+        }
+        consume(TokenType.Semicolon,  "Expect ';' after variable declaration.");
+        return new Var(name,initializer);
+    }
+
+    IStatement whileStatement()
+    {
+        consume(TokenType.LeftParen, "Expect '(' after 'while'.");
+        IExpression condition = expression();
+        consume(TokenType.RightParen, "Expect ')' after condition.");
+        IStatement body = statement();
+
+        return new While(condition, body);
+    }
     //Rules
     IExpression equality() 
     {
@@ -121,13 +270,18 @@ public class Parser
         {
         return new Literal(previous().literal);    
         }
+
         if (Match(TokenType.LeftParen))
         {
             IExpression expr = expression();
             consume(TokenType.RightParen,  "Expect ')' after expression.");
             return new Grouping(expr);
         }
-        
+
+        if (Match(TokenType.Identifier)) 
+        {
+            return new Variable(previous());
+        }   
         throw error(Peek(), "Expect expression.");
     }
 
