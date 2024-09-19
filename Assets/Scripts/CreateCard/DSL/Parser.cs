@@ -256,9 +256,43 @@ public class Parser
         {
             Token unaryoperator = previous();
             IExpression right = unary();
-            return new Unary(unaryoperator, right);
+            return call();
         }
         return primary();
+    }
+
+    IExpression call()
+    {
+        IExpression expr = primary();
+        while(true)
+        {
+            if(Match(TokenType.LeftParen))
+            {
+                expr = finishcall(expr);
+            }
+            else
+            {
+                break;
+            }
+        }
+        return expr;
+
+    }
+
+    IExpression finishcall(IExpression callee)
+    {   
+        List<IExpression> arguments = new List<IExpression> ();
+        if(!Check(TokenType.RightParen))
+        {
+            do
+            {
+                arguments.Add(expression());
+            }
+            while(Match(TokenType.Comma));
+        }
+
+        Token paren = consume(TokenType.RightParen, "Exprect ')' after arguments.");
+        return new Call(callee,paren,arguments);    
     }
 
     IExpression primary()

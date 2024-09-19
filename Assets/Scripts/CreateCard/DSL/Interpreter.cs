@@ -2,13 +2,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Net;
 using Unity.VisualScripting;
+using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 
 public class Interpreter : IVisitor
 {
-    Environment environment = new Environment();
+    public Environment globals = new Environment();
+    public Environment environment = new Environment();
+    public Dictionary<IExpression,int> locals = new Dictionary<IExpression,int>();
+    internal Interpreter()
+    {
+        environment = globals;
+    }
     void interpret(List<IStatement> statements)
     {
         try
@@ -114,6 +122,27 @@ public class Interpreter : IVisitor
         return null;
     }
 
+    public object VisitCallExpr(Call expr)
+    {
+        object callee = Evaluate(expr.callee);
+        List<object> arguments = new List<object>();    
+
+        foreach (IExpression argument in expr.arguments)
+        {
+            arguments.Add(Evaluate(argument));
+        }
+        if (!(callee is ICallable))
+        {
+            throw new RuntimeError(expr.paren, "Can only call functions.");
+        }
+        ICallable function = (ICallable)callee;
+        if (arguments.Count != function.Arity())
+        {
+            throw new RuntimeError(expr.paren, $"Expected {function.Arity()} arguments but got {arguments.Count}.");
+        }
+        return function.call(this,arguments); 
+    }
+
     void CheckNumberOperands(Token binaryoperator, object left, object right)
     {
         if (left is long && right is long) return;
@@ -123,9 +152,22 @@ public class Interpreter : IVisitor
 
     public object VisitVariableExpr(Variable expr)
     {
-        return environment.Get(expr.name);
+        return lookUpVariable(expr.name, expr);
     }
 
+    object lookUpVariable(Token name, IExpression expr)
+    {
+        int? distance = locals[expr];
+        if(distance != null)
+        {
+            return environment.GetAt(distance, name);
+        }
+        else
+        {
+            return globals.Get(name);
+        }
+    }
+    
     private bool IsTruthy(object obj)
     {
         if (obj == null) return false;
@@ -147,6 +189,10 @@ public class Interpreter : IVisitor
     void Execute(IStatement statement)
     {
         statement.Accept(this);
+    }
+    public void resolve(IExpression expr, int depth) 
+    {
+        locals.Add(expr, depth);
     }
 
     public void executeBlock(List<IStatement> statements, Environment environment)

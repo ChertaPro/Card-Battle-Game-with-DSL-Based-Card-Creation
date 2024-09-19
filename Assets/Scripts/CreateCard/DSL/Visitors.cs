@@ -16,6 +16,7 @@ public interface IVisitor
     object VisitBlockStmt(Block stmt);
     object VisitLogicalExpr(Logical expr);
     object VisitWhileStmt(While stmt);
+    object VisitCallExpr(Call call);
     // object VisitClassStmt(Class stmt);
     // object VisitFunctionStmt(Function stmt);
     // object VisitReturnStmt(Return stmt);

@@ -92,6 +92,24 @@ public class Binary : IExpression
     }
 }
 
+public class Call : IExpression
+{
+    public IExpression callee;
+    public Token paren;
+    public List<IExpression> arguments;
+
+    public Call(IExpression callee, Token paren, List<IExpression> arguments)
+    {
+        this.callee = callee;
+        this.paren = paren;
+        this.arguments = arguments;
+    }	
+
+    public object Accept(IVisitor visitor)
+    {
+        return visitor.VisitCallExpr(this);
+    }
+}
 public class Grouping : IExpression
 {
     public IExpression expression { get; }
