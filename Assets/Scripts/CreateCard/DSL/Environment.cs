@@ -50,17 +50,5 @@ public class Environment
         values.Add(name, value);
     }
 
-    public object GetAt(int? distance, Token name)
-    {
-        return ancestor(distance).Get(name);
-    }
-    public Environment ancestor(int? distance)
-    {
-        Environment environment = this;
-        for (int i = 0; i<distance; i++)
-        {
-            environment = environment.enclosing;
-        }
-        return environment;
-    }
+    
 }

@@ -25,15 +25,15 @@ public class Expression : IStatement
 
 public class Var : IStatement
 {
-    public Var(Token name, IExpression initializer)
+    public Var(Token name, Token type, IExpression initializer)
     {
         this.name = name;
-        //this.type = type;
+        this.type = type;
         this.initializer = initializer;
     }
 
     public Token name;
-    //public Token type;
+    public Token type;
     public IExpression initializer;
 
     public object Accept(IVisitor visitor)
@@ -71,5 +71,25 @@ public class While : IStatement
     {
         return visitor.VisitWhileStmt(this);
     }
+
+    
 }
 
+public class For : IStatement
+    {
+        internal Token iter;
+        internal IExpression list;
+        internal IStatement body;
+
+        internal For(Token iter, IExpression list, IStatement body)
+        {
+            this.iter = iter;
+            this.list = list;
+            this.body = body;
+        }
+
+        public object Accept(IVisitor visitor)
+        {
+            return visitor.VisitForStmt(this);
+        }
+    }

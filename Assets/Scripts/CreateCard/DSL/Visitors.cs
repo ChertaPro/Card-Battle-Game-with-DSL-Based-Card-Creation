@@ -17,8 +17,21 @@ public interface IVisitor
     object VisitLogicalExpr(Logical expr);
     object VisitWhileStmt(While stmt);
     object VisitCallExpr(Call call);
-    // object VisitClassStmt(Class stmt);
-    // object VisitFunctionStmt(Function stmt);
-    // object VisitReturnStmt(Return stmt);
+    object VisitForStmt(For stmt);
+    
+    object VisitTypeProp(Type prop);
+    object VisitNameProp(Name prop);
+    object VisitFactionProp(Faction prop);
+    object VisitPowerProp(Power prop);
+    object VisitSourceProp(Source prop);
+    object VisitSingleProp(Single prop);
+    object VisitPredicateProp(Predicate prop);
+    object VisitParamValueProp(ParamValue param);
+    object VisitRangeProp(Range param);
+    object VisitSelectorMethod(Selector selector);
+    object VisitEffectMethod(Effect effect);
+    object VisitOnActivationMethod(OnActivation prop);
+    object VisitOnActBodyMethod(OnActBody prop);
+    object VisitCardClassClass(CardClass prop);
     
 }

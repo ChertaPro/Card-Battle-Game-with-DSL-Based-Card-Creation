@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class Lexer
 {
-    string source;
+    public string source;
     //Reserved words
     private static Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>
     {

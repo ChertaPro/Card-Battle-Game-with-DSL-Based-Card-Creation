@@ -12,6 +12,7 @@ public static class DSL
     private static  Interpreter interpreter = new Interpreter();
     static bool hadError = false;
     static bool hadRuntimeError = false;
+    public static List<Card> Cardscreated = new List<Card> ();
     public static void Error(int line, int column, string message) 
     {
         Report(line, column, "", message);
@@ -21,7 +22,7 @@ public static class DSL
         Debug.Log($"[Line {line}, Column {column}] Error {where}: " + message);
         hadError = true;
     }
-
+    
     public static void error(Token token, string message)
     {
         if (token.type == TokenType.EOF)
@@ -69,11 +70,26 @@ public static class DSL
         }
 
         Parser parser = new Parser(tokens);
+        List<Class> classes = parser.Parse();
+
 
         if(hadError){
             Debug.LogError("Invalid code\n");
             return;
         }
+        Interpreter interpreter = new Interpreter();
+        Dictionary<Card, Method> pairs = interpreter.CreateCards(classes);
+        if(hadError){
+            Debug.LogError("Invalid code\n");
+            return;
+        }
+
+        
+        foreach(var pair in pairs)
+        {
+            Cardscreated.Add(pair.Key);
+        }
+
 
         Debug.Log("Successfull Compilation");
     }

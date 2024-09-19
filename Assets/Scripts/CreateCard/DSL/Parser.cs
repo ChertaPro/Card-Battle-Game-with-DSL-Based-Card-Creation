@@ -11,18 +11,6 @@ using UnityEngine;
 
 public class Parser
 {
-    List<IStatement> parse()
-    {
-        List<IStatement> statements= new List<IStatement>();
-
-        while (!IsAtEnd()) 
-        {
-            statements.Add(declaration());
-        }
-        return statements;
-    }
-    public class ParseError : System.Exception
-    {}  
     public List<Token> tokens;
     int current = 0;
 
@@ -30,6 +18,221 @@ public class Parser
     {
         this.tokens = tokens;
     }
+    public List<Class> Parse()
+    {
+        List<Class> classes = new List<Class>();
+        while (!IsAtEnd())
+        {
+            Class _class = Class();
+            if (_class == null) break;
+            classes.Add(_class);
+        }
+        return classes;
+    }
+    private Class Class()
+    {
+        if (Check(TokenType.Card))
+        {
+            return CardClass();
+        }
+        DSL.error(Peek(), "Only 'card' and 'effect' are accepted as class names.");
+        return null;
+    }
+    private Class CardClass()
+    {
+        if (!Consume(TokenType.Card, "Expected 'card' declaration.")) return null;
+        if (!Consume(TokenType.LeftBrace, "Expected '{' after 'card'.")) return null;
+        Prop type = Type();
+        if (!Consume(TokenType.Comma, "Expected ',' after 'Type' declaration.")) return null;
+        Prop name = Name();
+        if (!Consume(TokenType.Comma, "Expected ',' after 'Name' declaration.")) return null;
+        Prop faction = Faction();
+        if (!Consume(TokenType.Comma, "Expected ',' after 'Faction' declaration.")) return null;
+        Prop power = Power();
+        if (!Consume(TokenType.Comma, "Expected ',' after 'Power' declaration.")) return null;
+        Prop range = Range();
+        if (!Consume(TokenType.Comma, "Expected ',' after 'Range' declaration.")) return null;
+        Method onActivation = OnActivation();
+        if (!Consume(TokenType.RightBrace, "Expected '}' at the end of 'card'.")) return null;
+        return new CardClass(type, name, faction, power, range, onActivation);
+    }
+
+    private Method OnActivation()
+    {
+        if (!Consume(TokenType.OnActivation, "Expected 'OnActivation' declaration.")) return null;
+        if (!Consume(TokenType.Colon, "Expected ':' after 'OnActivation'.")) return null;
+        if (!Consume(TokenType.LeftBracket, "Expected '['.")) return null;
+        if (Match(TokenType.RightBracket)) return null;
+        List<Method> onActBodies = new List<Method>();
+        do
+        {
+            onActBodies.Add(OnActBody());
+        } while (Match(TokenType.Comma));
+        if (!Consume(TokenType.RightBracket, "Expected ']'.")) return null;
+        return new OnActivation(onActBodies);
+    }    
+
+    private Method OnActBody()
+    {
+        if (!Consume(TokenType.LeftBrace, "Expected '{'.")) return null;
+        Method effect = Effect();
+        if (!Match(TokenType.Comma))
+        {
+            if (!Consume(TokenType.RightBrace, "Expected '}'.")) return null;
+            return new OnActBody(effect, null, null);
+        }
+        Method postAction = null;
+        if (Match(TokenType.PostAction))
+        {
+            if (!Consume(TokenType.Colon, "Expected ':' after 'PostAction'.")) return null;
+            postAction = OnActBody();
+            if (!Consume(TokenType.RightBrace, "Expected '}'.")) return null;
+            return new OnActBody(effect, null, postAction);
+        }
+        Method selector = Selector();
+        if (!Check(TokenType.Comma))
+        {
+            if (!Consume(TokenType.RightBrace, "Expected '}'.")) return null;
+            return new OnActBody(effect, selector, null);
+        }
+        if (!Consume(TokenType.Comma, "Expected ',' after 'Selector'.")) return null;
+        if (!Consume(TokenType.PostAction, "Expected 'PostAction'.")) return null;
+        if (!Consume(TokenType.Colon, "Expected ':' after 'PostAction'.")) return null;
+        postAction = OnActBody();
+        if (!Consume(TokenType.RightBrace, "Expected '}'.")) return null;
+        return new OnActBody(effect, selector, postAction);
+    }
+
+    private Method Effect()
+    {
+        if (!Consume(TokenType.Effect, "Expected 'Effect' declaration.")) return null;
+        Token effect = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Effect'.")) return null;
+        if (!Match(TokenType.LeftBrace))
+        {
+            IExpression effectName = expression();
+            return new Effect(effect, effectName);
+        }
+        Prop name = Name();
+        List<Prop> paramsv = new List<Prop>();
+        while (Match(TokenType.Comma))
+        {
+            paramsv.Add(ParamValue());
+        }
+        if (!Consume(TokenType.RightBrace, "Expected '}'.")) return null;
+        return new Effect(effect, name, paramsv);
+    }
+    private Method Selector()
+    {
+        if (!Consume(TokenType.Selector, "Expected 'Selector' declaration.")) return null;
+        Token selector = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Selector'.")) return null;
+        if (!Consume(TokenType.LeftBrace, "Expected '{'.")) return null;
+        Prop source = Source();
+        if (!Consume(TokenType.Comma, "Expected ',' after 'Source'.")) return null;
+        Prop single = Single();
+        if (!Consume(TokenType.Comma, "Expected ',' after 'Single'.")) return null;
+        Prop predicate = Predicate();
+        if (!Consume(TokenType.RightBrace, "Expected '}'.")) return null;
+        return new Selector(selector, source, single, predicate);
+    }
+
+    private Prop Source()
+    {
+        if (!Consume(TokenType.Source, "Expected 'Source' declaration.")) return null;
+        Token source = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Source'.")) return null;
+        IExpression value = expression();
+        return new Source(source, value);
+    }
+
+    private Prop Single()
+    {
+        if (!Consume(TokenType.Single, "Expected 'Single' declaration.")) return null;
+        Token single = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Single'.")) return null;
+        IExpression value = expression();
+        return new Single(single, value);
+    }
+
+    private Prop Predicate()
+    {
+        if (!Consume(TokenType.Predicate, "Expected 'Predicate' declaration.")) return null;
+        Token predicate = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Predicate'.")) return null;
+        if (!Consume(TokenType.LeftParen, "Expected '('.")) return null;
+        if (!Consume(TokenType.Identifier, "Expected identifier.")) return null;
+        Token card = previous();
+        if (!Consume(TokenType.RightParen, "Expected ')'.")) return null;
+        if (!Consume(TokenType.Arrow, "Expected \"=>\".")) return null;
+        IExpression condition = expression();
+        return new Predicate(predicate, card, condition);
+    }
+
+    private Prop Name()
+    {
+        if (!Consume(TokenType.Name, "Expected 'Name' declaration.")) return null;
+        Token name = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Name'.")) return null;
+        IExpression value =expression();
+        return new Name(name, value);
+    }
+
+    private Prop Type()
+    {
+        if (!Consume(TokenType.Type, "Expected 'Type' declaration.")) return null;
+        Token type = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Type'.")) return null;
+        IExpression value = expression();
+        return new Type(type, value);
+    }
+
+    private Prop Faction()
+    {
+        if (!Consume(TokenType.Faction, "Expected 'Faction' declaration.")) return null;
+        Token faction = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Faction'.")) return null;
+        IExpression value = expression();
+        return new Faction(faction, value);
+    }
+
+    private Prop Power()
+    {
+        if (!Consume("Power", "Expected 'Power' declaration.")) return null;
+        Token power = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Power'.")) return null;
+        IExpression value = expression();
+        return new Power(power, value);
+    }
+
+    private Prop Range()
+    {
+        if (!Consume(TokenType.Range, "Expected 'Range' declaration.")) return null;
+        Token range = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Range'.")) return null;
+        if (!Consume(TokenType.LeftBracket, "Expected '['.")) return null;
+        List<IExpression> list = new List<IExpression>();
+        do
+        {
+            list.Add(expression());
+        } while (Match(TokenType.Comma));
+        if (!Consume(TokenType.RightBracket, "Expected ']'.")) return null;
+        return new Range(range, list);
+    }
+    private Prop ParamValue()
+    {
+        if (!Consume(TokenType.Identifier, "Expected parameter declaration.")) return null;
+        Token name = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after parameter name.")) return null;
+        IExpression value = expression();
+        return new ParamValue(name, value);
+    }
+
+
+
+
+    public class ParseError : System.Exception
+    {}
 
     IExpression expression()
     {
@@ -57,49 +260,17 @@ public class Parser
         return expressionStatement();
     }
 
+
     IStatement forStatement()
     {
-        consume(TokenType.LeftParen, "Expect '(' after 'for'.");
-        IStatement initializer;
-        if(Match(TokenType.Semicolon))
-        {
-            initializer = null;
-        }
-        else if (Match(TokenType.Identifier))
-        {
-            initializer = VarDeclaration();
-        }
-        else
-        {
-            initializer = expressionStatement();
-        }
-        IExpression condition = null;
-        if (!Check(TokenType.Semicolon))
-        {
-            condition = expression();
-        }
-        consume(TokenType.Semicolon, "Expect ';' after loop condition.");
-        IExpression increment = null;
-        if(!Check(TokenType.RightParen))
-        {
-            increment = expression();
-        }
-        consume(TokenType.RightParen, "Expect ')' after for clauses.");
-        IStatement body = statement();
-        if(increment != null)
-        {
-            body = new Block(new List<IStatement> { body, new Expression(increment) });
-        }
-        if (condition == null) condition = new Literal(true); // Si no hay condición, será `true` por defecto.
-        body = new While(condition, body);
-
-        if (initializer != null)
-        {
-            body = new Block(new List<IStatement> { initializer, body });
-        }
-
-        return body;
+        if (!Consume(TokenType.Identifier, "Expected 'identifier'.")) return null;
+        Token iter = previous();
+        if (!Consume(TokenType.In, "Expected 'in' in 'for' declaration.")) return null;
+        IExpression list = call();
+        IStatement body = declaration();
+        return new For(iter, list, body);
     }
+
     IStatement expressionStatement()
     {
         IExpression expr = expression();
@@ -116,6 +287,7 @@ public class Parser
             statements.Add(declaration());
         }
         consume(TokenType.RightBrace,  "Expect '}' after block.");
+        consume(TokenType.Semicolon, "Expected ';'.");
         return statements;
     }
     IExpression assignment()
@@ -164,14 +336,14 @@ public class Parser
     IStatement VarDeclaration()
     {
         Token name = consume(TokenType.Identifier, "Expect variable name.");
-
+        Token oper = Peek();
         IExpression initializer = null;
         if(Match(TokenType.Equal))
         {
             initializer = expression();
         }
         consume(TokenType.Semicolon,  "Expect ';' after variable declaration.");
-        return new Var(name,initializer);
+        return new Var(name,oper,initializer);
     }
 
     IStatement whileStatement()
@@ -179,7 +351,7 @@ public class Parser
         consume(TokenType.LeftParen, "Expect '(' after 'while'.");
         IExpression condition = expression();
         consume(TokenType.RightParen, "Expect ')' after condition.");
-        IStatement body = statement();
+        IStatement body = declaration();
 
         return new While(condition, body);
     }
@@ -349,15 +521,42 @@ public class Parser
         if (Check(type)) return advance();
         throw error(Peek(), message);
     }
+    private bool Consume(TokenType type, string message)
+    {
+        if (Check(type))
+        {
+            advance();
+            return true;
+        }
+        DSL.error(Peek(), message);
+        synchronize();
+        return false;
+    }
+
+    private bool Consume(string type, string message)
+    {
+        if (Check(type))
+        {
+            advance();
+            return true;
+        }
+        DSL.error(Peek(), message);
+        synchronize();
+        return false;
+    }
     bool Check(TokenType type)
     {
         if (IsAtEnd()) return false;
         return Peek().type == type;
     }
-
+    private bool Check(string oper)
+    {
+        if (IsAtEnd()) return false;
+        return Peek().lexeme == oper;
+    }
     Token advance()
     {
-        if (IsAtEnd()) current++;
+        if (!IsAtEnd()) current++;
         return previous();
     }
 
