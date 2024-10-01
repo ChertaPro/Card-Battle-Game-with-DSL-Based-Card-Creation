@@ -17,6 +17,7 @@ public interface IVisitor
     object VisitLogicalExpr(Logical expr);
     object VisitWhileStmt(While stmt);
     object VisitCallExpr(Call call);
+    object VisitAccessExpr(Access access);
     object VisitForStmt(For stmt);
     
     object VisitTypeProp(Type prop);

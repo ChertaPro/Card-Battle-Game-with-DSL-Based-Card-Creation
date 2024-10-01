@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine.UI;
 using System;
 using System.Linq;
-// DSL.print();
 public static class DSL 
 {
     static CompileButton console ;
@@ -13,6 +12,7 @@ public static class DSL
     static bool hadError = false;
     static bool hadRuntimeError = false;
     public static List<Card> Cardscreated = new List<Card> ();
+
     public static void Error(int line, int column, string message) 
     {
         Report(line, column, "", message);
@@ -77,18 +77,18 @@ public static class DSL
             Debug.LogError("Invalid code\n");
             return;
         }
-        Interpreter interpreter = new Interpreter();
-        Dictionary<Card, Method> pairs = interpreter.CreateCards(classes);
-        if(hadError){
-            Debug.LogError("Invalid code\n");
-            return;
-        }
+        // Interpreter interpreter = new Interpreter();
+        // Dictionary<Card, Method> pairs = interpreter.CreateCards(classes);
+        // if(hadError){
+        //     Debug.LogError("Invalid code\n");
+        //     return;
+        // }
 
         
-        foreach(var pair in pairs)
-        {
-            Cardscreated.Add(pair.Key);
-        }
+        // foreach(var pair in pairs)
+        // {
+        //     Cardscreated.Add(pair.Key);
+        // }
 
 
         Debug.Log("Successfull Compilation");

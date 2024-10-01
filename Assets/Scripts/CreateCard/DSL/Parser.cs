@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -64,12 +65,14 @@ public class Parser
         if (!Consume(TokenType.LeftBracket, "Expected '['.")) return null;
         if (Match(TokenType.RightBracket)) return null;
         List<Method> onActBodies = new List<Method>();
+        
         do
         {
             onActBodies.Add(OnActBody());
         } while (Match(TokenType.Comma));
+
         if (!Consume(TokenType.RightBracket, "Expected ']'.")) return null;
-        return new OnActivation(onActBodies);
+        return null;
     }    
 
     private Method OnActBody()
@@ -114,13 +117,21 @@ public class Parser
             return new Effect(effect, effectName);
         }
         Prop name = Name();
-        List<Prop> paramsv = new List<Prop>();
+        List<Prop> paramsvalues = new List<Prop>();
         while (Match(TokenType.Comma))
         {
-            paramsv.Add(ParamValue());
+            paramsvalues.Add(ParamValue());
         }
         if (!Consume(TokenType.RightBrace, "Expected '}'.")) return null;
-        return new Effect(effect, name, paramsv);
+        return new Effect(effect, name, paramsvalues);
+    }
+    private Prop ParamValue()
+    {
+        if (!Consume(TokenType.Identifier, "Expected parameter declaration.")) return null;
+        Token name = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after parameter name.")) return null;
+        IExpression value = expression();
+        return new ParamValue(name, value);
     }
     private Method Selector()
     {
@@ -198,7 +209,7 @@ public class Parser
 
     private Prop Power()
     {
-        if (!Consume("Power", "Expected 'Power' declaration.")) return null;
+        if (!Consume(TokenType.Power, "Expected 'Power' declaration.")) return null;
         Token power = previous();
         if (!Consume(TokenType.Colon, "Expected ':' after 'Power'.")) return null;
         IExpression value = expression();
@@ -219,24 +230,184 @@ public class Parser
         if (!Consume(TokenType.RightBracket, "Expected ']'.")) return null;
         return new Range(range, list);
     }
-    private Prop ParamValue()
-    {
-        if (!Consume(TokenType.Identifier, "Expected parameter declaration.")) return null;
-        Token name = previous();
-        if (!Consume(TokenType.Colon, "Expected ':' after parameter name.")) return null;
-        IExpression value = expression();
-        return new ParamValue(name, value);
-    }
+    
 
 
 
 
-    public class ParseError : System.Exception
-    {}
+    // public class ParseError : System.Exception
+    // {}
 
     IExpression expression()
     {
-        return assignment();
+        return logic();
+    }
+
+    IExpression logic ()
+    {
+            IExpression expr = equality();
+            List<TokenType> operators = new List<TokenType> { TokenType.And, TokenType.Or };
+            while (Match(operators))
+            {
+                Token oper = previous();
+                IExpression right = equality();
+                expr = new Binary(expr, oper, right);
+            }
+            return expr;
+    }
+
+    IExpression equality() 
+    {
+        IExpression expr = comparison();
+        List<TokenType> types = new List<TokenType>() {TokenType.BangEqual, TokenType.EqualEqual};
+        while (Match(types)) 
+        {
+            Token binaryoperator = previous();
+            IExpression right = comparison();
+            expr = new Binary(expr, binaryoperator, right);
+        }
+        return expr;
+    }
+
+    IExpression comparison()
+    {
+        IExpression expr = term();
+        List<TokenType> types = new List<TokenType> () {TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual};
+        while (Match(types))
+        {
+            Token binaryoperator = previous();
+            IExpression right  = term();
+            expr = new Binary(expr, binaryoperator, right); 
+        }
+        return expr;
+    }
+
+    IExpression term()
+    {
+        IExpression expr = factor();
+        List<TokenType> types = new List<TokenType> () {TokenType.Plus, TokenType.Minus, TokenType.AtSymbol, TokenType.AtSymbolAtSymbol};
+        while (Match(types))
+        {
+            Token binaryoperator = previous();
+            IExpression right = factor();
+            expr = new Binary(expr, binaryoperator,right);
+        }
+        return expr;
+    }
+
+    IExpression factor()
+    {
+        IExpression expr = pow();
+        List<TokenType> types = new List<TokenType> () { TokenType.Mul,TokenType.Slash};
+        while (Match(types))
+        {
+            Token binaryoperator = previous();
+            IExpression right = pow();
+            expr = new Binary(expr, binaryoperator,right);
+        }
+        return expr;
+    }
+
+    IExpression pow()
+    {
+        IExpression expr = unary();
+        List<TokenType> types = new List<TokenType> () {TokenType.Pow};
+        while (Match(types))
+        {
+            Token binaryoperator = previous();
+            IExpression right = unary();
+            expr = new Binary(expr, binaryoperator,right);
+        }
+        return expr;
+    }
+
+    IExpression unary()
+    {
+        List<TokenType> types = new List<TokenType> () {TokenType.Minus,TokenType.Bang};
+        if (Match(types))
+        {
+            Token unaryoperator = previous();
+            IExpression right = unary();
+            return new Unary(unaryoperator,right);
+        }
+        return call();
+    }
+
+    IExpression call()
+    {
+        IExpression expr = primary();
+        while(true)
+        {
+            if(Match(TokenType.LeftParen))
+            {
+                expr = finishcall(expr);
+            }
+            else if (Match(TokenType.Dot))
+            {
+                List<TokenType> properties = new List<TokenType> {TokenType.Faction, TokenType.Type, TokenType.Power, TokenType.Range};
+                int c = 0;
+                foreach(TokenType tokentype in properties)
+                {
+                    
+                    if (Check(tokentype)) c++;
+                }
+                if (c == 0)
+                {
+                    if (!Consume(TokenType.Identifier, "Expected property name after '.'.")) return null;
+                }
+                advance();
+                Token name = previous();
+                expr = new Access(expr,name);
+            }
+            else
+            {
+                break;
+            }
+        }
+        return expr;
+
+    }
+
+    IExpression finishcall(IExpression callee)
+    {   
+        List<IExpression> arguments = new List<IExpression> ();
+        if(!Check(TokenType.RightParen))
+        {
+            do
+            {
+                arguments.Add(expression());
+            }
+            while(Match(TokenType.Comma));
+        }
+
+        if (!Consume(TokenType.RightParen, "Expected ')' after arguments.")) return null;
+        Token paren = previous();
+        return new Call(callee, paren, arguments);   
+    }
+
+    IExpression primary()
+    {
+        if (Match(TokenType.False)) return new Literal(false);
+        if (Match(TokenType.True)) return new Literal(true);
+        List<TokenType> types = new List<TokenType> () { TokenType.NumberLiteral, TokenType.StringLiteral};
+        if (Match(types)) 
+        {
+        return new Literal(previous().literal);    
+        }
+
+        if (Match(TokenType.LeftParen))
+        {
+            IExpression expr = expression();
+            if (!Consume(TokenType.RightParen, "Expected ')' after expression.")) return null;
+            return new Grouping(expr);
+        }
+
+        if (Match(TokenType.Identifier)) 
+        {
+            return new Variable(previous());
+        }   
+        DSL.error(Peek(), "Expect expression.");
+        return null;
     }
 
     IStatement declaration()
@@ -246,14 +417,14 @@ public class Parser
             if( Match(TokenType.Identifier)) return VarDeclaration();
             return statement();
         }
-        catch(ParseError error)
+        catch(Exception error)
         {
             synchronize();
             return null;
         }
     }
     IStatement statement()
-    {
+    {   
         if(Match(TokenType.For)) return forStatement();
         if(Match(TokenType.While))  return whileStatement();
         if(Match(TokenType.LeftBrace)) return new Block(block());
@@ -297,16 +468,16 @@ public class Parser
         if( Match(TokenType.Equal))
         {
             IExpression value = assignment();
-
             if (expr is Variable)
             {
                 Token name = ((Variable)expr).name;
                 return new Assign(name, value);
             }
-        }
-
-        error(equal, "Invalid assignment target.");
-
+            else
+            {
+                DSL.error(equal, "Invalid assignment target.");
+            }
+        }        
         return expr;
     }
 
@@ -356,141 +527,7 @@ public class Parser
         return new While(condition, body);
     }
     //Rules
-    IExpression equality() 
-    {
-        IExpression expr = comparison();
-        List<TokenType> types = new List<TokenType>() {TokenType.BangEqual, TokenType.EqualEqual};
-        while (Match(types)) 
-        {
-            Token binaryoperator = previous();
-            IExpression right = comparison();
-            expr = new Binary(expr, binaryoperator, right);
-        }
-        return expr;
-    }
-
-    IExpression comparison()
-    {
-        IExpression expr = term();
-        List<TokenType> types = new List<TokenType> () {TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual};
-        while (Match(types))
-        {
-            Token binaryoperator = previous();
-            IExpression right  = term();
-            expr = new Binary(expr, binaryoperator, right); 
-        }
-        return expr;
-    }
-
-    IExpression term()
-    {
-        IExpression expr = factor();
-        List<TokenType> types = new List<TokenType> () {TokenType.Plus, TokenType.Minus};
-        while (Match(types))
-        {
-            Token binaryoperator = previous();
-            IExpression right = factor();
-            expr = new Binary(expr, binaryoperator,right);
-        }
-        return expr;
-    }
-
-    IExpression factor()
-    {
-        IExpression expr = pow();
-        List<TokenType> types = new List<TokenType> () { TokenType.Mul,TokenType.Slash};
-        while (Match(types))
-        {
-            Token binaryoperator = previous();
-            IExpression right = pow();
-            expr = new Binary(expr, binaryoperator,right);
-        }
-        return expr;
-    }
-
-    IExpression pow()
-    {
-        IExpression expr = unary();
-        List<TokenType> types = new List<TokenType> () {TokenType.Pow};
-        while (Match(types))
-        {
-            Token binaryoperator = previous();
-            IExpression right = unary();
-            expr = new Binary(expr, binaryoperator,right);
-        }
-        return expr;
-    }
-
-    IExpression unary()
-    {
-        List<TokenType> types = new List<TokenType> () {TokenType.Minus,TokenType.Bang};
-        if (Match(types))
-        {
-            Token unaryoperator = previous();
-            IExpression right = unary();
-            return call();
-        }
-        return primary();
-    }
-
-    IExpression call()
-    {
-        IExpression expr = primary();
-        while(true)
-        {
-            if(Match(TokenType.LeftParen))
-            {
-                expr = finishcall(expr);
-            }
-            else
-            {
-                break;
-            }
-        }
-        return expr;
-
-    }
-
-    IExpression finishcall(IExpression callee)
-    {   
-        List<IExpression> arguments = new List<IExpression> ();
-        if(!Check(TokenType.RightParen))
-        {
-            do
-            {
-                arguments.Add(expression());
-            }
-            while(Match(TokenType.Comma));
-        }
-
-        Token paren = consume(TokenType.RightParen, "Exprect ')' after arguments.");
-        return new Call(callee,paren,arguments);    
-    }
-
-    IExpression primary()
-    {
-        if (Match(TokenType.False)) return new Literal(false);
-        if (Match(TokenType.True)) return new Literal(true);
-        List<TokenType> types = new List<TokenType> () { TokenType.NumberLiteral, TokenType.StringLiteral};
-        if (Match(types)) 
-        {
-        return new Literal(previous().literal);    
-        }
-
-        if (Match(TokenType.LeftParen))
-        {
-            IExpression expr = expression();
-            consume(TokenType.RightParen,  "Expect ')' after expression.");
-            return new Grouping(expr);
-        }
-
-        if (Match(TokenType.Identifier)) 
-        {
-            return new Variable(previous());
-        }   
-        throw error(Peek(), "Expect expression.");
-    }
-
+    
 
     //Parsing Functions
     bool Match(List<TokenType> types)
@@ -519,7 +556,8 @@ public class Parser
     Token consume(TokenType type, string message)
     {
         if (Check(type)) return advance();
-        throw error(Peek(), message);
+        DSL.error(Peek(), message);
+        return null;
     }
     private bool Consume(TokenType type, string message)
     {
@@ -533,17 +571,6 @@ public class Parser
         return false;
     }
 
-    private bool Consume(string type, string message)
-    {
-        if (Check(type))
-        {
-            advance();
-            return true;
-        }
-        DSL.error(Peek(), message);
-        synchronize();
-        return false;
-    }
     bool Check(TokenType type)
     {
         if (IsAtEnd()) return false;
@@ -573,27 +600,21 @@ public class Parser
         return tokens[current - 1];
     }    
 
-    ParseError error(Token token, string message)
-    {
-        DSL.error(token,message);
-        return new ParseError();
-    }
+    // ParseError error(Token token, string message)
+    // {
+    //     DSL.error(token,message);
+    //     return new ParseError();
+    // }
 
     void synchronize()
     {
         advance();
-        while (!IsAtEnd()) 
-        {
-            if (previous().type == TokenType.Semicolon) return;
-        }
-
-        switch (Peek().type)
-        {
-            case TokenType.For:
-            case TokenType.While:    
-            return;
-        }
-
-        advance();
+            
+            Dictionary<string, TokenType> StatementBeginning = Lexer.keywords;
+            while (!IsAtEnd())
+            {
+                if (previous().type == TokenType.Semicolon || StatementBeginning.ContainsValue(Peek().type) || Peek().type == TokenType.Identifier) return;
+                advance();
+            }
     }
 }

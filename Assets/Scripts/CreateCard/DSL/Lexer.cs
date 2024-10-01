@@ -8,7 +8,7 @@ public class Lexer
 {
     public string source;
     //Reserved words
-    private static Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>
+    public static Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>
     {
         {"Number", TokenType.Number},
         {"String", TokenType.String},

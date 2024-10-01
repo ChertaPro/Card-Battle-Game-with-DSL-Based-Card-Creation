@@ -399,6 +399,10 @@ public class Interpreter : IVisitor
         return function.call(this,arguments); 
     }
 
+    public object VisitAccessExpr(Access expr)
+    {
+        return null;
+    }
     void CheckNumberOperands(Token binaryoperator, object left, object right)
     {
         if (left is long && right is long) return;

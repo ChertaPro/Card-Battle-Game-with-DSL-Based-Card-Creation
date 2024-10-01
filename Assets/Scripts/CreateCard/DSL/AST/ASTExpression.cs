@@ -141,4 +141,23 @@ public class Variable : IExpression
     }
 }
 
+public class Access : IExpression
+{
+    public IExpression obj;
+
+    public Token name;
+
+    public Access(IExpression obj, Token name)
+    {
+        this.obj = obj;
+        this.name = name;
+    }
+
+    public object Accept(IVisitor visitor)
+    {
+        return visitor.VisitAccessExpr(this);
+    }
+
+}
+
 
