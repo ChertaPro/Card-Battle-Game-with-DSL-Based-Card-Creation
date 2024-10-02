@@ -4,11 +4,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using System.Xml;
-using Unity.Mathematics;
-using Unity.VisualScripting;
-using UnityEditor;
-using UnityEditor.PackageManager;
-using UnityEngine;
+using Unity.VisualScripting.Antlr3.Runtime;
 
 public class Parser
 {
@@ -19,27 +15,31 @@ public class Parser
     {
         this.tokens = tokens;
     }
-    public List<Class> Parse()
+    public List<GameEntity> Parse()
     {
-        List<Class> classes = new List<Class>();
+        List<GameEntity> entities = new List<GameEntity>();
         while (!IsAtEnd())
         {
-            Class _class = Class();
-            if (_class == null) break;
-            classes.Add(_class);
+            GameEntity _gameentity = GameEntities();
+            if (_gameentity == null) break;
+            entities.Add(_gameentity);
         }
-        return classes;
+        return entities;
     }
-    private Class Class()
+    private GameEntity GameEntities()
     {
         if (Check(TokenType.Card))
         {
             return CardClass();
         }
+        if (Check(TokenType.effect))
+        {
+            return EffectClass();
+        }
         DSL.error(Peek(), "Only 'card' and 'effect' are accepted as class names.");
         return null;
     }
-    private Class CardClass()
+    private GameEntity CardClass()
     {
         if (!Consume(TokenType.Card, "Expected 'card' declaration.")) return null;
         if (!Consume(TokenType.LeftBrace, "Expected '{' after 'card'.")) return null;
@@ -231,12 +231,72 @@ public class Parser
         return new Range(range, list);
     }
     
+    private GameEntity EffectClass()
+    {
+        if (!Consume(TokenType.effect, "Expected 'effect' declaration.")) return null;
+        if (!Consume(TokenType.LeftBrace, "Expected '{' after 'effect'.")) return null;
+        Prop name = Name();
+        if (!Consume(TokenType.Comma, "Expected ',' after 'Name' declaration.")) return null;
+        Method parameters = null;
+        if (Check(TokenType.Params))
+        {
+            parameters = Params();
+            if (!Consume(TokenType.Comma, "Expected ',' after 'Params' declaration.")) return null;
+        }
+        Method action = Action();
+        if (!Consume(TokenType.RightBrace, "Expected '}' at the end of 'effect'.")) return null;
+        return new EffectClass(name,parameters,action);
+    }
 
+    private Method Params()
+    {
+        if (!Consume(TokenType.Params, "Expected 'Params' declaration.")) return null;
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Params' declaration.")) return null;
+        if (!Consume(TokenType.LeftBrace, "Expected '{'.")) return null;
+        List<Prop> parameters = new List<Prop>();
+        do
+        {
+            parameters.Add(ParamDeclaration());
+        } while(Match(TokenType.Comma));
+        if (!Consume(TokenType.RightBrace, "Expected '}' after parameters.")) return null;
+        return new Params(parameters);
+    }
 
+    private Prop ParamDeclaration()
+    {
+        if (!Consume(TokenType.Identifier, "Expected parameter name.")) return null;
+        Token name = previous();
+        if (!Consume(TokenType.Colon, "Expected ':' after parameter name.")) return null;
+        List<TokenType> checking = new List<TokenType> {TokenType.String, TokenType.Number, TokenType.Bool};
+        if (!Match(checking))
+        {
+            DSL.error(name, "The parameter type has to be 'String', 'Number', 'Bool'");
+            return null;
+        }
+        Token value = previous();
+        return new ParamDeclaration(name, value);
+    }
 
-
-    // public class ParseError : System.Exception
-    // {}
+    private Method Action ()
+    {
+        if (!Consume(TokenType.Action, "Expected 'Action' declaration.")) return null;
+        if (!Consume(TokenType.Colon, "Expected ':' after 'Action'.")) return null;
+        if (!Consume(TokenType.LeftParen, "Expected '('.")) return null;
+        if (!Consume(TokenType.Identifier, "Expected identifier 'targets'.")) return null;
+        Token targets = previous();
+        if (!Consume(TokenType.Comma, "Expected ','.")) return null;
+        if (!Consume(TokenType.Identifier, "Expected identifier 'context'.")) return null;
+        Token context = previous();
+        if (!Consume(TokenType.RightParen, "Expected ')'.")) return null;
+        if (!Consume(TokenType.Arrow, "Expected '=>'.")) return null;
+        if (!Consume(TokenType.LeftBrace, "Expected '{'.")) return null;
+        List<IStatement> statements = new List<IStatement>();
+        do
+        {
+            statements.Add(declaration());
+        } while(!Match(TokenType.RightBrace) && !IsAtEnd());
+        return new Action(targets, context, statements);
+    }
 
     IExpression expression()
     {
@@ -311,8 +371,7 @@ public class Parser
     IExpression pow()
     {
         IExpression expr = unary();
-        List<TokenType> types = new List<TokenType> () {TokenType.Pow};
-        while (Match(types))
+        while (Match(TokenType.Pow))
         {
             Token binaryoperator = previous();
             IExpression right = unary();
@@ -344,7 +403,7 @@ public class Parser
             }
             else if (Match(TokenType.Dot))
             {
-                List<TokenType> properties = new List<TokenType> {TokenType.Faction, TokenType.Type, TokenType.Power, TokenType.Range};
+                List<TokenType> properties = new List<TokenType> {TokenType.Faction, TokenType.Type, TokenType.Power, TokenType.Range, TokenType.Identifier};
                 int c = 0;
                 foreach(TokenType tokentype in properties)
                 {
@@ -364,6 +423,16 @@ public class Parser
                 break;
             }
         }
+
+        List<TokenType> opers = new List<TokenType> {TokenType.PlusPlus, TokenType.MinusMinus};
+        if(Match(opers))
+        {
+            if(expr is Call)
+            {
+                DSL.error(((Call)expr).paren, "Increment and Decrement operations cannot be aplaied to methods" );
+            }
+            return new Postoperation(expr, previous());
+        }
         return expr;
 
     }
@@ -373,11 +442,10 @@ public class Parser
         List<IExpression> arguments = new List<IExpression> ();
         if(!Check(TokenType.RightParen))
         {
-            do
+            while(Match(TokenType.Comma))
             {
                 arguments.Add(expression());
             }
-            while(Match(TokenType.Comma));
         }
 
         if (!Consume(TokenType.RightParen, "Expected ')' after arguments.")) return null;
@@ -404,10 +472,41 @@ public class Parser
 
         if (Match(TokenType.Identifier)) 
         {
+            Token variable = previous();
+            List<TokenType> operators = new List<TokenType> {TokenType.PlusPlus, TokenType.MinusMinus};
+            if (Match(operators))
+            {
+                return new Postoperation(new Variable(variable), previous());
+            }
             return new Variable(previous());
         }   
+        List<TokenType> opers = new List<TokenType> {TokenType.PlusPlus, TokenType.MinusMinus};
+        if(Match(opers))
+        {
+            return preoper();
+        }
         DSL.error(Peek(), "Expect expression.");
+        synchronize();
         return null;
+    }
+
+    private IExpression preoper()
+    {
+        Token oper = previous();
+        if (!Consume(TokenType.Identifier, $"Expected IDENTIFIER after '{oper.lexeme}'.")) return null;
+        IExpression expre =  new Preoperation(oper, new Variable(previous()));
+        if (Check(TokenType.Dot))
+        {
+            current --;
+            IExpression expr = call();
+            if (!(expr is Access))
+            {
+                DSL.error(oper, "Operation can only be aplaied to integer variables and Card properties.");
+                return null;
+            }
+            expre = new Preoperation(oper, expr);
+        }
+        return expre;
     }
 
     IStatement declaration()
@@ -422,6 +521,56 @@ public class Parser
             synchronize();
             return null;
         }
+    }
+
+    IStatement VarDeclaration()
+    {
+        Token name = previous();
+        List<TokenType> opers = new List<TokenType> { TokenType.Equal, TokenType.PlusEqual, TokenType.MulEqual, TokenType.MinusEqual,
+        TokenType.SlashEqual, TokenType.AtSymbolequal};
+        Token oper = Peek();
+        if(!Match(opers))
+        {
+            if(Check(TokenType.PlusPlus) || Check(TokenType.MinusMinus))
+            {
+                current--;
+                return expressionStatement();
+            }
+            if(Check(TokenType.Dot))
+            {
+                current --;
+                return new Expression(CallMethods());
+            }
+        }
+        IExpression initializer = expression();
+        consume(TokenType.Semicolon,  "Expect ';' after variable declaration.");
+        return new Var(name,oper,initializer);
+    }
+
+    IExpression CallMethods()
+    {
+        IExpression expr = call();
+        if(Match(TokenType.Semicolon))
+        {
+            return expr;
+        }
+        if(!(expr is Access) && !(expr is Variable))
+        {
+            DSL.error(Peek(), "Invalid Sintaxis");
+            return null;
+        }
+        List<TokenType> opers = new List<TokenType> { TokenType.Equal, TokenType.PlusEqual, TokenType.MulEqual, TokenType.MinusEqual,
+        TokenType.SlashEqual, TokenType.AtSymbolequal};
+        Token name = previous();
+        Token oper = Peek();
+        if(!Match(opers))
+        {
+            DSL.error(Peek(), "Invalid operation");
+            return null;
+        }
+        IExpression initializer = expression();
+        consume(TokenType.Semicolon,  "Expect ';' after variable declaration.");
+        return new Set(expr, name, oper,initializer);
     }
     IStatement statement()
     {   
@@ -461,61 +610,6 @@ public class Parser
         consume(TokenType.Semicolon, "Expected ';'.");
         return statements;
     }
-    IExpression assignment()
-    {
-        IExpression expr = or();
-        Token equal = previous();
-        if( Match(TokenType.Equal))
-        {
-            IExpression value = assignment();
-            if (expr is Variable)
-            {
-                Token name = ((Variable)expr).name;
-                return new Assign(name, value);
-            }
-            else
-            {
-                DSL.error(equal, "Invalid assignment target.");
-            }
-        }        
-        return expr;
-    }
-
-    IExpression or()
-    {
-        IExpression expr = and();
-        while(Match(TokenType.Or))
-        {
-            Token logicaloperator = previous();
-            IExpression right = and();
-            expr = new Logical(expr,logicaloperator, right);
-        }
-        return expr;
-    }
-
-    IExpression and()
-    {
-        IExpression expr = equality();
-        while(Match(TokenType.And))
-        {
-            Token logicaloperator = previous();
-            IExpression right = equality();
-            expr = new Logical(expr,logicaloperator, right);
-        }
-        return expr;
-    }
-    IStatement VarDeclaration()
-    {
-        Token name = consume(TokenType.Identifier, "Expect variable name.");
-        Token oper = Peek();
-        IExpression initializer = null;
-        if(Match(TokenType.Equal))
-        {
-            initializer = expression();
-        }
-        consume(TokenType.Semicolon,  "Expect ';' after variable declaration.");
-        return new Var(name,oper,initializer);
-    }
 
     IStatement whileStatement()
     {
@@ -526,8 +620,6 @@ public class Parser
 
         return new While(condition, body);
     }
-    //Rules
-    
 
     //Parsing Functions
     bool Match(List<TokenType> types)
@@ -599,12 +691,6 @@ public class Parser
     {
         return tokens[current - 1];
     }    
-
-    // ParseError error(Token token, string message)
-    // {
-    //     DSL.error(token,message);
-    //     return new ParseError();
-    // }
 
     void synchronize()
     {

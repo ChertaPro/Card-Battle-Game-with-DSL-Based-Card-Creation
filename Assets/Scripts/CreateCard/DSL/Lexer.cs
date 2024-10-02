@@ -352,6 +352,7 @@ public enum TokenType
     Single, //Selección de un único objetivo
     Predicate, //Condición para el efecto
     PostAction, //Acción a realizar después del efecto
+    
     //Types
     Number, String, Bool,
     EOF //Indica el final del archivo

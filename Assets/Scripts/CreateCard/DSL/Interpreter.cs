@@ -15,6 +15,7 @@ public class Interpreter : IVisitor
     public Environment environment = new Environment();
     private Gamecontext gamecontext;
     private object parentTargets;
+
     private Lists actualSource;
     public Interpreter()
     {
@@ -28,7 +29,7 @@ public class Interpreter : IVisitor
         environment = globals;
         parentTargets = null;
     }
-    public Dictionary<Card, Method> CreateCards(List<Class> classes)
+    public Dictionary<Card, Method> CreateCards(List<GameEntity> classes)
     {
         Dictionary<Card, Method> cards = new Dictionary<Card, Method>();
         foreach (var klass in classes)
@@ -41,7 +42,7 @@ public class Interpreter : IVisitor
         }
         return cards;
     }
-    private object Execute(Class klass) => klass.Accept(this);
+    private object Execute(GameEntity klass) => klass.Accept(this);
 
     private object Execute(Method method) => method.Accept(this);
 
@@ -49,7 +50,7 @@ public class Interpreter : IVisitor
 
     private object Execute(IStatement stmt) => stmt.Accept(this);
 
-    public object VisitCardClassClass(CardClass cardClass)
+    public object VisitCardClass(CardClass cardClass)
     {
         object type = Execute(cardClass.type);
         object name = Execute(cardClass.name);
@@ -288,6 +289,27 @@ public class Interpreter : IVisitor
         }
     }   
 
+    #region todo
+    #endregion
+    public object VisitEffectClass(EffectClass effectClass)
+    {
+        return null;
+    }
+
+    public object VisitParamsMethod(Params parameters)
+    {
+        return null;
+    }
+
+    public object VisitParamDeclarationProp(ParamDeclaration prop)
+    {
+        return null;
+    }
+
+    public object VisitActionMethod(Action action)
+    {
+        return null;
+    }
     public object VisitLiteral(Literal expr)
     {
         return expr.value;
@@ -399,10 +421,28 @@ public class Interpreter : IVisitor
         return function.call(this,arguments); 
     }
 
+    #region todo
+    #endregion
     public object VisitAccessExpr(Access expr)
     {
         return null;
     }
+
+    public object VisitSetExpr(Set expr)
+    {
+        return null;
+    }
+
+    public object VisitPostoperation(Postoperation expr)
+    {
+        return null;
+    }
+
+    public object VisitPreoperation(Preoperation expr)
+    {
+        return null;
+    }
+
     void CheckNumberOperands(Token binaryoperator, object left, object right)
     {
         if (left is long && right is long) return;
@@ -469,13 +509,6 @@ public class Interpreter : IVisitor
 
         environment.Define(stmt.name.lexeme, value);
         return null;
-    }
-
-    public object VisitAssignExpr(Assign expr)
-    {
-        object value = Evaluate(expr.value);
-        environment.assign(expr.name, value);
-        return value;
     }
 
     public object VisitLogicalExpr(Logical expr)

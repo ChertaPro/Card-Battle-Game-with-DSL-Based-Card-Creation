@@ -58,22 +58,6 @@ public class Logical : IExpression
         return visitor.VisitLogicalExpr(this);
     }
 }
-public class Assign : IExpression
-{
-    public Assign(Token name, IExpression value)
-    {
-        this.name = name;
-        this.value = value;
-    }
-
-    public Token name;
-    public IExpression value;
-
-    public object Accept(IVisitor visitor)
-    {
-        return visitor.VisitAssignExpr(this);
-    }
-}
 public class Binary : IExpression
 {
     public IExpression left;
@@ -160,4 +144,56 @@ public class Access : IExpression
 
 }
 
+public class Set : IExpression
+{
+    public IExpression obj;
+    public Token name;
+    public Token oper;
+    public IExpression value;
+
+    public Set(IExpression obj, Token name, Token oper, IExpression value)
+    {
+        this.obj = obj;
+        this.name = name;
+        this.oper = oper;
+        this.value = value;
+    }
+
+    public object  Accept (IVisitor visitor)
+    {
+        return visitor.VisitSetExpr(this);
+    }
+}
+
+public class Postoperation : IExpression
+{
+    public IExpression variable;
+    public Token type;
+    public Postoperation(IExpression variable, Token type)
+    {
+        this.variable = variable;
+        this.type = type;
+    }
+
+    public object Accept( IVisitor visitor)
+    {
+        return visitor.VisitPostoperation(this);
+    }
+}
+
+public class Preoperation : IExpression
+{
+    public Token type;
+    public IExpression variable;
+    public Preoperation(Token type, IExpression variable)
+    {
+        this.variable = variable;
+        this.type = type;
+    }
+
+    public object Accept(IVisitor visitor)
+    {
+        return visitor.VisitPreoperation(this);
+    }
+}
 

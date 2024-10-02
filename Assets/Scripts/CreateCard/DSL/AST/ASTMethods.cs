@@ -88,3 +88,37 @@ public class Selector : Method
         return visitor.VisitSelectorMethod(this);
     }
 }
+
+public class Params : Method
+{
+    public List<Prop> paramslist;
+
+    public Params(List<Prop> paramslist)
+    {
+        this.paramslist = paramslist;
+    }
+
+    public object Accept (IVisitor visitor)
+    {
+        return visitor.VisitParamsMethod(this);
+    }
+}
+
+public class Action : Method
+{
+    public Token targets;
+    public Token context;
+    public List<IStatement> statements;
+
+    public Action(Token targets, Token context, List<IStatement> statements)
+    {
+        this.targets = targets;
+        this.context = context;
+        this.statements = statements;
+    }
+
+    public object Accept (IVisitor visitor)
+    {
+        return visitor.VisitActionMethod(this);
+    }
+}

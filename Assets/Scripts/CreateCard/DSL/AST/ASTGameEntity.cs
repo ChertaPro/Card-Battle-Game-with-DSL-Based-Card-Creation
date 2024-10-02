@@ -2,12 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Class
+public abstract class GameEntity
 {
     public abstract object Accept(IVisitor visitor);
 }
 
-public class CardClass : Class
+public class CardClass : GameEntity
 {
     public Prop type;
     public Prop name;
@@ -28,6 +28,26 @@ public class CardClass : Class
 
     public override object Accept(IVisitor visitor)
     {
-        return visitor.VisitCardClassClass(this);
+        return visitor.VisitCardClass(this);
     }    
+}
+
+public class EffectClass : GameEntity
+{
+
+    public Prop name;
+    public Method parameters;
+    public Method action;
+
+    public EffectClass(Prop name, Method parameters, Method action)
+    {
+        this.name = name;
+        this.parameters = parameters;
+        this.action = action;
+    }
+
+    public override object Accept(IVisitor visitor)
+    {
+        return visitor.VisitEffectClass(this);
+    }
 }

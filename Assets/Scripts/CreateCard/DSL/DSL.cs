@@ -70,7 +70,7 @@ public static class DSL
         }
 
         Parser parser = new Parser(tokens);
-        List<Class> classes = parser.Parse();
+        List<GameEntity> GameEntities = parser.Parse();
 
 
         if(hadError){

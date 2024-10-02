@@ -4,60 +4,7 @@ using UnityEngine;
 
 public interface  Prop
 {
-        public object Accept(IVisitor visitor);
-}
-
-public class Source : Prop
-{
-    public Token source;
-    public IExpression value;
-
-    public Source(Token source, IExpression value)
-    {
-        this.source = source;
-        this.value = value;
-    }
-
-    public object Accept(IVisitor visitor)
-    {
-        return visitor.VisitSourceProp(this);
-    }
-}
-
-public class Single : Prop
-{
-    public Token single;
-    public IExpression value;
-
-    public Single(Token single, IExpression value)
-    {
-        this.single = single;
-        this.value = value;
-    }
-
-    public object Accept(IVisitor visitor)
-    {
-        return visitor.VisitSingleProp(this);
-    }
-}
-
-public class Predicate : Prop
-{
-    public Token predicate;
-    public Token card;
-    public IExpression condition;
-
-    public Predicate(Token predicate, Token card, IExpression condition)
-    {
-        this.predicate = predicate;
-        this.card = card;
-        this.condition = condition;
-    }
-
-    public object Accept(IVisitor visitor)
-    {
-        return visitor.VisitPredicateProp(this);
-    }
+    public object Accept(IVisitor visitor);
 }
 
 public class Name : Prop
@@ -76,7 +23,6 @@ public class Name : Prop
         return visitor.VisitNameProp(this);
     }
 }
-
 public class Type : Prop
 {
     public Token type;
@@ -145,6 +91,59 @@ public class Range : Prop
     }
 }
 
+public class Source : Prop
+{
+    public Token source;
+    public IExpression value;
+
+    public Source(Token source, IExpression value)
+    {
+        this.source = source;
+        this.value = value;
+    }
+
+    public object Accept(IVisitor visitor)
+    {
+        return visitor.VisitSourceProp(this);
+    }
+}
+
+public class Single : Prop
+{
+    public Token single;
+    public IExpression value;
+
+    public Single(Token single, IExpression value)
+    {
+        this.single = single;
+        this.value = value;
+    }
+
+    public object Accept(IVisitor visitor)
+    {
+        return visitor.VisitSingleProp(this);
+    }
+}
+
+public class Predicate : Prop
+{
+    public Token predicate;
+    public Token card;
+    public IExpression condition;
+
+    public Predicate(Token predicate, Token card, IExpression condition)
+    {
+        this.predicate = predicate;
+        this.card = card;
+        this.condition = condition;
+    }
+
+    public object Accept(IVisitor visitor)
+    {
+        return visitor.VisitPredicateProp(this);
+    }
+}
+
 public class ParamValue : Prop
 {
     public Token name;
@@ -159,5 +158,22 @@ public class ParamValue : Prop
     public object Accept(IVisitor visitor)
     {
         return visitor.VisitParamValueProp(this);
+    } 
+}
+
+public class ParamDeclaration : Prop
+{
+    public Token name;
+    public Token value;
+
+    public ParamDeclaration(Token name, Token value)
+    {
+        this.name = name;
+        this.value = value;
+    }
+
+    public object Accept(IVisitor visitor)
+    {
+        return visitor.VisitParamDeclarationProp(this);
     } 
 }
