@@ -68,7 +68,7 @@ public class Effects : MonoBehaviour
             }
         }
 
-        if (keyword == "roba")
+        if (keyword == "Draw")
         { 
             Field = GameObject.Find("CRLeader");
             if( go.transform.parent == COCHand.transform)   
@@ -482,8 +482,98 @@ public class Effects : MonoBehaviour
                 }
                 go.transform.SetParent(graveyard.transform,false);
             }
-            
-            
+        }
+
+        if (keyword == "Damage")
+        {
+            Transform damage = go.transform;
+            CardDisplay amount = damage.GetComponent<CardDisplay>();
+            foreach( Transform card in GameElements.Board())
+            {
+                CardDisplay power = card.GetComponent<CardDisplay>();
+                if(power.cardtype != "Oro")
+                {
+                    power.displaycard.power -= amount.amount;
+                } 
+            }
+        }
+
+        if(keyword == "Aumento")
+        {
+            for (int i = 0;i<3;i++)
+            {
+                Field = GameObject.Find(COCaumentos[i]);
+                if (go.transform.parent == Field.transform)
+                {
+                    Field2 = GameObject.Find(zones[i]);
+                    if(Field2.transform.childCount > 0)
+                    {
+                        foreach(Transform card in Field2.transform)
+                        {
+                            CardDisplay aum = card.GetComponent<CardDisplay>();
+                            if(aum.aumentobool && aum.cardtype != "Oro")
+                            {
+                                aum.displaycard.aumentobool = false;
+                                aum.displaycard.power +=1;
+                                aum.aumentobool = false;
+                            }
+                        }
+                    }
+                }
+            }
+            for (int i = 0;i<3;i++)
+            {
+                Field = GameObject.Find(CRaumentos[i]);
+                if (go.transform.parent == Field.transform)
+                {
+                    Field2 = GameObject.Find(zones[i+3]);
+                    if(Field2.transform.childCount > 0)
+                    {
+                        foreach(Transform card in Field2.transform)
+                        {
+                            CardDisplay aum = card.GetComponent<CardDisplay>();
+                            if(aum.aumentobool && aum.cardtype != "Oro")
+                            {
+                                aum.displaycard.aumentobool = false;
+                                aum.displaycard.power +=1;
+                                aum.aumentobool = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if(keyword == "Clima")
+        {
+            Field = GameObject.Find(zones[0]);
+            Field2 = GameObject.Find(zones[3]);
+            if (Field.transform.childCount > 0)
+            {
+                foreach (Transform card in Field.transform)
+                {
+                    CardDisplay clima = card.GetComponent<CardDisplay>();
+                    if(clima.climabool && clima.cardtype != "Oro")
+                    {
+                        clima.displaycard.climabool = false;
+                        clima.displaycard.power -=1;
+                        clima.climabool = false;
+                    }
+                }
+            } 
+            if (Field2.transform.childCount > 0)
+            {   
+                foreach (Transform card in Field2.transform)
+                {
+                    CardDisplay clima = card.GetComponent<CardDisplay>();
+                    if(clima.climabool && clima.cardtype != "Oro")
+                    {
+                        clima.displaycard.climabool = false;
+                        clima.displaycard.power -=1;
+                        clima.climabool = false;
+                    }
+                }
+            }
         }
     }
 }

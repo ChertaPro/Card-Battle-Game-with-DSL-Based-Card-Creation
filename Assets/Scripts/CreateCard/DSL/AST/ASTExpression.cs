@@ -40,24 +40,7 @@ public class Unary : IExpression
     }
 
 }
-public class Logical : IExpression
-{
-    public Logical(IExpression left, Token logicaloperator, IExpression right)
-    {
-        this.left = left;
-        this.logicaloperator = logicaloperator;
-        this.right = right;
-    }
 
-    public IExpression left;
-    public Token logicaloperator;
-    public IExpression right;
-
-    public object Accept(IVisitor visitor)
-    {
-        return visitor.VisitLogicalExpr(this);
-    }
-}
 public class Binary : IExpression
 {
     public IExpression left;

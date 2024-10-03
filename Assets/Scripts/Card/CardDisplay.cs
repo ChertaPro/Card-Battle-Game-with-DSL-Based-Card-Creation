@@ -19,6 +19,7 @@ public class CardDisplay : MonoBehaviour
     public List<string> attack_type;
     public int? power;
     public string effect;
+    public int amount;
     public Sprite spriteimage;
 
     public Image show;
@@ -80,6 +81,7 @@ public class CardDisplay : MonoBehaviour
         attack_type = displaycard.range;
         power = displaycard.power;
         effect = displaycard.effect;
+        amount = displaycard.amount;
         spriteimage = displaycard.spriteimage;
         show.sprite = spriteimage;
         climabool = displaycard.climabool;

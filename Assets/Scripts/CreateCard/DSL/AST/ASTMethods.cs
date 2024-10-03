@@ -9,9 +9,9 @@ public interface Method
 
 public class OnActivation : Method
 {
-    public List<Method> onActBodies;
+    public List<OnActBody> onActBodies;
 
-    public OnActivation(List<Method> onActBodies)
+    public OnActivation(List<OnActBody> onActBodies)
     {
         this.onActBodies = onActBodies;
     }
@@ -23,11 +23,11 @@ public class OnActivation : Method
 }
 public class OnActBody : Method
 {
-    public Method effect;
+    public Effect effect;
     public Method selector;
     public Method postAction;
 
-    public OnActBody(Method effect, Method selector, Method postAction)
+    public OnActBody(Effect effect, Method selector, Method postAction)
     {
         this.effect = effect;
         this.selector = selector;

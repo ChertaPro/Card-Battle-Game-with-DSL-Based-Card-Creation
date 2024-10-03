@@ -18,14 +18,14 @@ public class CardDatabase : MonoBehaviour
     {
         //Leaders
         Leaders.Add(new Card(0,0,"Reina Arquera","Lider","COC",null, null,"mantener",Resources.Load<Sprite>("0-Reina Arquera"),true,true));
-        Leaders.Add(new Card(1,0,"Rey","Lider","CR",null,null,"roba",Resources.Load<Sprite>("17-Rey"),true,true));
+        Leaders.Add(new Card(1,0,"Rey","Lider","CR",null,null,"Draw",Resources.Load<Sprite>("17-Rey"),true,true));
         //COC
         COCDeck.Add(new Card(1,0,"Pekka","Oro","COC",9,new List<string> { "Melee"},"+poder",Resources.Load<Sprite>("1-Pekka"),true,true));
         COCDeck.Add(new Card(2,0,"Gran Centinela","Oro","COC",7,new List<string> { "Ranged"},"aumento",Resources.Load<Sprite>("2-Gran Centinela"),true,true));
-        COCDeck.Add(new Card(3,0,"Rey Barbaro","Oro","COC",8,new List<string> { "Melee"},"roba",Resources.Load<Sprite>("3-Rey Barbaro"),true,true));
-        COCDeck.Add(new Card(4,0,"Lanzarrocas","Plata","COC",4,new List<string> { "Ranged"},"roba",Resources.Load<Sprite>("4-Lanzarrocas"),true,true));
-        COCDeck.Add(new Card(5,0,"Lanzarrocas","Plata","COC",4,new List<string> { "Ranged"},"roba",Resources.Load<Sprite>("4-Lanzarrocas"),true,true));
-        COCDeck.Add(new Card(6,0,"Lanzarrocas","Plata","COC",4,new List<string> { "Ranged"},"roba",Resources.Load<Sprite>("4-Lanzarrocas"),true,true));
+        COCDeck.Add(new Card(3,0,"Rey Barbaro","Oro","COC",8,new List<string> { "Melee"},"Draw",Resources.Load<Sprite>("3-Rey Barbaro"),true,true));
+        COCDeck.Add(new Card(4,0,"Lanzarrocas","Plata","COC",4,new List<string> { "Ranged"},"Draw",Resources.Load<Sprite>("4-Lanzarrocas"),true,true));
+        COCDeck.Add(new Card(5,0,"Lanzarrocas","Plata","COC",4,new List<string> { "Ranged"},"Draw",Resources.Load<Sprite>("4-Lanzarrocas"),true,true));
+        COCDeck.Add(new Card(6,0,"Lanzarrocas","Plata","COC",4,new List<string> { "Ranged"},"Draw",Resources.Load<Sprite>("4-Lanzarrocas"),true,true));
         COCDeck.Add(new Card(7,0,"Montapuercos","Plata","Neutral",6,new List<string> { "Melee"},"-poder",Resources.Load<Sprite>("5-Montapuercos"),true,true));//*! Neutral
         COCDeck.Add(new Card(8,0,"Montapuercos","Plata","Neutral",6,new List<string> { "Melee"},"-poder",Resources.Load<Sprite>("5-Montapuercos"),true,true));//*! Neutral
         COCDeck.Add(new Card(9,0,"Montapuercos","Plata","Neutral",6,new List<string> { "Melee"},"-poder",Resources.Load<Sprite>("5-Montapuercos"),true,true));//*! Neutral
@@ -49,10 +49,10 @@ public class CardDatabase : MonoBehaviour
         //CR
         CRDeck.Add(new Card(1,0,"Caballero dorado","Oro","CR",8,new List<string> { "Melee"},"+poder",Resources.Load<Sprite>("18-Caballero Dorado"),true,true));
         CRDeck.Add(new Card(2,0,"Gigante electrico","Oro","CR",10,new List<string> { "Melee"},"clima",Resources.Load<Sprite>("19-Gigante Electrico"),true,true));
-        CRDeck.Add(new Card(3,0,"Gigante noble","Oro","CR",7,new List<string> { "Ranged"},"roba",Resources.Load<Sprite>("20-Gigante Noble"),true,true));
-        CRDeck.Add(new Card(4,0,"Lanzafuegos","Plata","CR",5,new List<string> { "Ranged"},"roba",Resources.Load<Sprite>("21-Lanzafuegos"),true,true));
-        CRDeck.Add(new Card(5,0,"Lanzafuegos","Plata","CR",5,new List<string> { "Ranged"},"roba",Resources.Load<Sprite>("21-Lanzafuegos"),true,true));
-        CRDeck.Add(new Card(6,0,"Lanzafuegos","Plata","CR",5,new List<string> { "Ranged"},"roba",Resources.Load<Sprite>("21-Lanzafuegos"),true,true));
+        CRDeck.Add(new Card(3,0,"Gigante noble","Oro","CR",7,new List<string> { "Ranged"},"Draw",Resources.Load<Sprite>("20-Gigante Noble"),true,true));
+        CRDeck.Add(new Card(4,0,"Lanzafuegos","Plata","CR",5,new List<string> { "Ranged"},"Draw",Resources.Load<Sprite>("21-Lanzafuegos"),true,true));
+        CRDeck.Add(new Card(5,0,"Lanzafuegos","Plata","CR",5,new List<string> { "Ranged"},"Draw",Resources.Load<Sprite>("21-Lanzafuegos"),true,true));
+        CRDeck.Add(new Card(6,0,"Lanzafuegos","Plata","CR",5,new List<string> { "Ranged"},"Draw",Resources.Load<Sprite>("21-Lanzafuegos"),true,true));
         CRDeck.Add(new Card(7,0,"Montapuercos","Plata","Neutral",6,new List<string> { "Melee"},"-poder",Resources.Load<Sprite>("5-Montapuercos"),true,true));//*! Neutral
         CRDeck.Add(new Card(8,0,"Montapuercos","Plata","Neutral",6,new List<string> { "Melee"},"-poder",Resources.Load<Sprite>("5-Montapuercos"),true,true));//*! Neutral
         CRDeck.Add(new Card(9,0,"Montapuercos","Plata","Neutral",6,new List<string> { "Melee"},"-poder",Resources.Load<Sprite>("5-Montapuercos"),true,true));//*! Neutral
@@ -73,6 +73,11 @@ public class CardDatabase : MonoBehaviour
         CRDeck.Add(new Card(24,0,"Tornado","Despeje","Neutral",null,null,"despeje",Resources.Load<Sprite>("14-Tornado"),true,true));//*! Neutral
         CRDeck.Add(new Card(25,0,"Duende","Señuelo","Neutral",0,null,"señuelo",Resources.Load<Sprite>("15-Duende"),true,true));//*! Neutral
         CRDeck.Add(new Card(26,0,"Esbirro","Señuelo","Neutral",0,null,"señuelo",Resources.Load<Sprite>("16-Esbirro"),true,true));//*! Neutral
+        foreach(Card card in DSL.Cardscreated)
+        {
+            CRDeck.Add(card);
+            COCDeck.Add(card);
+        }
         PlayerAssignment();
         COCbackup = COCDeck;
         CRbackup = CRDeck;

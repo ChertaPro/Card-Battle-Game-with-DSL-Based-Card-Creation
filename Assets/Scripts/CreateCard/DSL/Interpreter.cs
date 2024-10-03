@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Net;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.VisualScripting;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -14,9 +15,12 @@ public class Interpreter : IVisitor
     public Environment globals = new Environment();
     public Environment environment = new Environment();
     private Gamecontext gamecontext;
+    private Lists lastList;
+    private Card lastCard;
+    private Dictionary<string, (Dictionary<string, TokenType>, Method)> effectFun;
     private object parentTargets;
-
     private Lists actualSource;
+    private Lists TARGETS;
     public Interpreter()
     {
         environment = globals;
@@ -29,20 +33,27 @@ public class Interpreter : IVisitor
         environment = globals;
         parentTargets = null;
     }
-    public Dictionary<Card, Method> CreateCards(List<GameEntity> classes)
+    public Dictionary<Card, OnActivation> CreateCards(List<GameEntity> gameEntities)
     {
-        Dictionary<Card, Method> cards = new Dictionary<Card, Method>();
-        foreach (var klass in classes)
+        Dictionary<Card, OnActivation> cards = new Dictionary<Card, OnActivation>();
+        foreach (var entity in gameEntities)
         {
-            Card card = (Card)Execute(klass);
-            if (card != null)
+            if(entity is CardClass)
             {
-                cards[card] = ((CardClass)klass).onActivation;
+                Card card = (Card)Execute(entity);
+                if (card != null)
+            {
+                cards[card] = ((CardClass)entity).onActivation;
+            }
+            }
+            if(entity is EffectClass)
+            {
+                Card card = (Card)execute(entity);
             }
         }
         return cards;
     }
-    private object Execute(GameEntity klass) => klass.Accept(this);
+    private object Execute(GameEntity entity) => entity.Accept(this);
 
     private object Execute(Method method) => method.Accept(this);
 
@@ -57,7 +68,33 @@ public class Interpreter : IVisitor
         object faction = Execute(cardClass.faction);
         object power = Execute(cardClass.power);
         object range = Execute(cardClass.range);
-        return new Card(CardDatabase.COCDeck.Count+1,0,(string)name,(string)type,(string)faction,(int?)power,(List<string>)range,"",Resources.Load<Sprite>("Designer (2)"),true,true);
+        if ((string)type == "Aumento" || (string)type == "Clima")
+        {
+            range = null;
+        }
+        OnActivation onActivation = cardClass.onActivation;
+        OnActBody actbody = onActivation.onActBodies[0];
+        Effect effect = actbody.effect;
+        string effectname = "";
+        if(effect.exprName != null)
+        {
+            effectname = (string)Evaluate(effect.exprName);
+            return new Card(CardDatabase.COCDeck.Count+1,0,(string)name,(string)type,(string)faction,(int?)power,(List<string>)range,(string)effectname,Resources.Load<Sprite>("Designer (1)"),true,true);
+        }
+        else
+        {
+            effectname = (string)Execute(effect.name);
+            Dictionary<string, object> _params = new Dictionary<string, object>();
+            foreach(var _param in effect.paramsv)
+            {
+                string paramName;
+                object paramValue;
+                (paramName, paramValue) = ((string, object))Execute(_param);
+                _params[paramName] = paramValue;
+            }
+            return new Card(CardDatabase.COCDeck.Count+1,0,(string)name,(string)type,(string)faction,(int?)power,(List<string>)range,(string)effectname,(int)_params["Amount"],Resources.Load<Sprite>("Designer (1)"),true,true);
+        }
+        
     }
 
     public object VisitOnActivationMethod(OnActivation onActivation)
@@ -176,7 +213,7 @@ public class Interpreter : IVisitor
     public object VisitPowerProp(Power power)
     {
         object value = Evaluate(power.value);
-        if (!(value is long))
+        if (!(value is int))
         {
             DSL.error(power.power, "'Power' must be an integer.");
             return null;
@@ -191,9 +228,9 @@ public class Interpreter : IVisitor
         Pairs["Melee"] = "Melee";
         Pairs["Ranged"] = "Ranged";
         Pairs["Siege"] = "Siege";
-        foreach (var r in range.list)
+        foreach (var cardrange in range.list)
         {
-            object value = Evaluate(r);
+            object value = Evaluate(cardrange);
             if (!(value is string))
             {
                 DSL.error(range.range, "'Range' must be a set of strings.");
@@ -274,42 +311,47 @@ public class Interpreter : IVisitor
     {
         return (paramValue.name.lexeme, Evaluate(paramValue.value));
     }
-    void interpret(List<IStatement> statements)
-    {
-        try
-        {
-            foreach(IStatement statement in statements)
-            {
-                Execute(statement);
-            }
-        }
-        catch (RuntimeError error)
-        {
-            DSL.runtimeError(error);
-        }
-    }   
-
-    #region todo
-    #endregion
     public object VisitEffectClass(EffectClass effectClass)
     {
+        object name = Execute(effectClass.name);
+        object _params = new Dictionary<string, TokenType>();
+        if (effectClass.parameters != null)
+        {
+            _params = Execute(effectClass.parameters);
+        }
+        effectFun[(string)name] = ((Dictionary<string, TokenType>, Method))(_params, effectClass.action);
         return null;
     }
 
     public object VisitParamsMethod(Params parameters)
     {
-        return null;
+        Dictionary<string, TokenType> paramsDict = new Dictionary<string, TokenType>();
+        foreach (var param in parameters.paramslist)
+        {
+            string name;
+            TokenType value;
+            (name, value) = ((string, TokenType))Execute(param);
+            paramsDict[name] = value;
+        }
+        return paramsDict;
     }
 
     public object VisitParamDeclarationProp(ParamDeclaration prop)
     {
-        return null;
+        return (prop.name.lexeme, prop.value.type);
     }
 
     public object VisitActionMethod(Action action)
     {
+        environment.Define(action.targets.lexeme, TARGETS);
+        environment.Define(action.context.lexeme, null);
+        foreach(var stmt in action.statements)
+        {
+            Execute(stmt);
+        }
         return null;
     }
+
     public object VisitLiteral(Literal expr)
     {
         return expr.value;
@@ -329,40 +371,52 @@ public class Interpreter : IVisitor
                 return !IsTruthy(right);
             case TokenType.Minus:
             CheckNumberOperand(expr.unaryoperator,right);
-                return -(long)right;
+                return -(int)right;
         }
         return null;
     }
 
     void CheckNumberOperand(Token unaryoperator, object operand)
     {
-        if (operand is long) return;
+        if (operand is int) return;
         throw new RuntimeError(unaryoperator,"Operand must be a number.");
     }
-
+    private object execute(GameEntity effect)
+    {
+        return null;
+    }
     public object VisitBinary(Binary expr)
     {
         object left = Evaluate(expr.left);   
         object right = Evaluate(expr.right);
+        if (left == null || right == null)
+        {
+            DSL.error(expr.binaryoperator, "Operands can't be null.");
+            return null;
+        }
         
         switch (expr.binaryoperator.type)
         {
             //Comparison
+            case TokenType.And:
+                return IsTruthy(left) && IsTruthy(right);
+            case TokenType.Or:
+                return IsTruthy(left) || IsTruthy(right);
             case TokenType.Greater:
                 CheckNumberOperands(expr.binaryoperator, left, right);
-                return (long)left > (long)right;
+                return (int)left > (int)right;
 
             case TokenType.GreaterEqual:
                 CheckNumberOperands(expr.binaryoperator, left, right);
-                return (long)left >= (long)right;
+                return (int)left >= (int)right;
 
             case TokenType.Less:
                 CheckNumberOperands(expr.binaryoperator, left, right);
-                return (long)left < (long)right;
+                return (int)left < (int)right;
 
             case TokenType.LessEqual:
                 CheckNumberOperands(expr.binaryoperator, left, right);
-                return (long)left <= (long)right;
+                return (int)left <= (int)right;
 
             case TokenType.EqualEqual:
                 CheckNumberOperands(expr.binaryoperator, left, right);
@@ -375,23 +429,23 @@ public class Interpreter : IVisitor
             //Operations
             case TokenType.Minus:
                 CheckNumberOperands(expr.binaryoperator, left, right);
-                return (long)left - (long)right;
+                return (int)left - (int)right;
 
             case TokenType.Plus:
                 CheckNumberOperands(expr.binaryoperator, left, right);
-                return (long)left + (long)right;
+                return (int)left + (int)right;
 
             case TokenType.Slash:
                 CheckNumberOperands(expr.binaryoperator, left, right);
-                return (long)left / (long)right;
+                return (int)left / (int)right;
 
             case TokenType.Mul:
                 CheckNumberOperands(expr.binaryoperator, left, right);
-                return (long)left * (long)right;
+                return (int)left * (int)right;
 
             case TokenType.Pow:
             CheckNumberOperands(expr.binaryoperator, left, right);
-                return Math.Pow((long)left, (long)right); 
+                return Math.Pow((int)left, (int)right); 
 
             case TokenType.AtSymbol: return left.ToString() + right.ToString();
             case TokenType.AtSymbolAtSymbol: return left.ToString() + " " + right.ToString();
@@ -421,31 +475,15 @@ public class Interpreter : IVisitor
         return function.call(this,arguments); 
     }
 
-    #region todo
-    #endregion
-    public object VisitAccessExpr(Access expr)
-    {
-        return null;
-    }
-
-    public object VisitSetExpr(Set expr)
-    {
-        return null;
-    }
-
-    public object VisitPostoperation(Postoperation expr)
-    {
-        return null;
-    }
-
-    public object VisitPreoperation(Preoperation expr)
-    {
-        return null;
-    }
+    public object VisitAccessExpr(Access expr) => null;
+    public object VisitSetExpr(Set expr) => null;
+    public object VisitPostoperation(Postoperation expr) => null;
+    public object VisitPreoperation(Preoperation expr) => null;
+    
 
     void CheckNumberOperands(Token binaryoperator, object left, object right)
     {
-        if (left is long && right is long) return;
+        if (left is int && right is int) return;
         throw new RuntimeError(binaryoperator, "Operands must be numbers.");
 
     }
@@ -460,7 +498,7 @@ public class Interpreter : IVisitor
     {
         if (obj == null) return false;
         if (obj is bool) return (bool)obj;
-        if (obj is long) return (long)obj != 0;
+        if (obj is int) return (int)obj != 0;
         if (obj is string) return (string)obj != "";
         return true;
     }
@@ -502,28 +540,19 @@ public class Interpreter : IVisitor
     public object VisitVarStmt(Var stmt)
     {
         object value = null;
-        if (stmt.initializer != null)
+        if (stmt.initializer == null)
         {
-            value = Evaluate(stmt.initializer);
+            environment.Define(stmt.name.lexeme, value);
+            return value;
         }
-
+        TokenType type = OperConverter(stmt.type.type);
+        Token token = stmt.type;
+        token.type = type;
+        if (type == TokenType.Equal) value = Evaluate(stmt.initializer);
+        else if (type != stmt.type.type) value = null;
+        else value = Evaluate(new Binary(new Variable(stmt.name), token, stmt.initializer));
         environment.Define(stmt.name.lexeme, value);
-        return null;
-    }
-
-    public object VisitLogicalExpr(Logical expr)
-    {
-        object left = Evaluate(expr.left);
-
-        if(expr.logicaloperator.type == TokenType.Or)
-        {
-            if (IsTruthy(left)) return left;
-        }
-        else
-        {
-            if(!IsTruthy(left)) return left;
-        }
-        return Evaluate(expr.right);
+        return value;
     }
 
     public object VisitWhileStmt(While stmt)
@@ -536,20 +565,40 @@ public class Interpreter : IVisitor
     }
 
     public object VisitForStmt(For stmt)
+    {
+        object list = Evaluate(stmt.list);
+        if (!(list is Lists))
         {
-            object list = Evaluate(stmt.list);
-            if (!(list is Lists))
-            {
-                DSL.error(stmt.iter, "Expected list for this iterator.");
-                return null;
-            }
-            foreach (var item in ((Lists)list).Cards)
-            {
-                Environment previous = environment;
-                environment.Define(stmt.iter.lexeme, item);
-                Execute(stmt.body);
-                environment = previous;
-            }
+            DSL.error(stmt.iter, "Expected list for this iterator.");
             return null;
         }
+        foreach (var item in ((Lists)list).Cards)
+        {
+            Environment previous = environment;
+            environment.Define(stmt.iter.lexeme, item);
+            Execute(stmt.body);
+            environment = previous;
+        }
+        return null;
+    }
+
+    private TokenType OperConverter(TokenType tokenType)
+    {
+        switch (tokenType)
+        {
+            case TokenType.AtSymbolequal:
+                return TokenType.AtSymbol;
+            case TokenType.MulEqual:
+                return TokenType.Mul;
+            case TokenType.PlusEqual:
+                return TokenType.Plus;
+            case TokenType.MinusEqual:
+                return TokenType.Minus;
+            case TokenType.SlashEqual:
+                return TokenType.Slash;
+            case TokenType.Equal:
+                return TokenType.Equal;
+        }
+        return tokenType;
+    }
 }

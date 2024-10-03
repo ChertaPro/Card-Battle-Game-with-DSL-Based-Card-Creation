@@ -53,18 +53,18 @@ public class Parser
         if (!Consume(TokenType.Comma, "Expected ',' after 'Power' declaration.")) return null;
         Prop range = Range();
         if (!Consume(TokenType.Comma, "Expected ',' after 'Range' declaration.")) return null;
-        Method onActivation = OnActivation();
+        OnActivation onActivation = OnActivation();
         if (!Consume(TokenType.RightBrace, "Expected '}' at the end of 'card'.")) return null;
         return new CardClass(type, name, faction, power, range, onActivation);
     }
 
-    private Method OnActivation()
+    private OnActivation OnActivation()
     {
         if (!Consume(TokenType.OnActivation, "Expected 'OnActivation' declaration.")) return null;
         if (!Consume(TokenType.Colon, "Expected ':' after 'OnActivation'.")) return null;
         if (!Consume(TokenType.LeftBracket, "Expected '['.")) return null;
         if (Match(TokenType.RightBracket)) return null;
-        List<Method> onActBodies = new List<Method>();
+        List<OnActBody> onActBodies = new List<OnActBody>();
         
         do
         {
@@ -72,13 +72,13 @@ public class Parser
         } while (Match(TokenType.Comma));
 
         if (!Consume(TokenType.RightBracket, "Expected ']'.")) return null;
-        return null;
+        return new OnActivation(onActBodies);
     }    
 
-    private Method OnActBody()
+    private OnActBody OnActBody()
     {
         if (!Consume(TokenType.LeftBrace, "Expected '{'.")) return null;
-        Method effect = Effect();
+        Effect effect = Effect();
         if (!Match(TokenType.Comma))
         {
             if (!Consume(TokenType.RightBrace, "Expected '}'.")) return null;
@@ -106,7 +106,7 @@ public class Parser
         return new OnActBody(effect, selector, postAction);
     }
 
-    private Method Effect()
+    private Effect Effect()
     {
         if (!Consume(TokenType.Effect, "Expected 'Effect' declaration.")) return null;
         Token effect = previous();
@@ -696,10 +696,36 @@ public class Parser
     {
         advance();
             
-            Dictionary<string, TokenType> StatementBeginning = Lexer.keywords;
+            Dictionary<string, TokenType> StatementInits = new Dictionary<string, TokenType>
+            {
+                {"Type", TokenType.Type},
+                {"Faction", TokenType.Faction},
+                {"Power", TokenType.Power},
+                {"Range", TokenType.Range},
+                {"OnActivation", TokenType.OnActivation},
+                {"Number", TokenType.Number},
+                {"String", TokenType.String},
+                {"Bool", TokenType.Bool},
+                {"false", TokenType.False},
+                {"true", TokenType.True},
+                {"card", TokenType.Card},
+                {"effect", TokenType.effect},
+                {"Action", TokenType.Action},
+                {"Effect", TokenType.Effect},
+                {"OnActivation", TokenType.OnActivation},
+                {"Params", TokenType.Params},
+                {"PostAction", TokenType.PostAction},
+                {"Predicate", TokenType.Predicate},
+                {"Selector", TokenType.Selector},
+                {"Source", TokenType.Source},
+                {"Single", TokenType.Single},
+                {"while", TokenType.While},
+                {"for", TokenType.For},
+                {"in", TokenType.In},
+            };   
             while (!IsAtEnd())
             {
-                if (previous().type == TokenType.Semicolon || StatementBeginning.ContainsValue(Peek().type) || Peek().type == TokenType.Identifier) return;
+                if (previous().type == TokenType.Semicolon || StatementInits.ContainsValue(Peek().type) || Peek().type == TokenType.Identifier) return;
                 advance();
             }
     }

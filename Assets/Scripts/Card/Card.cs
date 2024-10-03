@@ -13,6 +13,7 @@ public class Card
     public int? power;
     public List<string> range;
     public string effect;
+    public int amount;
     public Sprite spriteimage;
     public bool climabool;
     public bool aumentobool;
@@ -38,5 +39,20 @@ public class Card
         this.aumentobool = Aumentobool;
     }
     
+    public Card(int Id,int owner, string Cardname,string Cardtype,string Faction, int? Power, List<string> Range,string Effect,int Amount,Sprite Spriteimage,bool Climabool,bool Aumentobool)
+    {
+        this.id = Id;
+        this.owner = owner;
+        this.cardname = Cardname;
+        this.cardtype = Cardtype;
+        this.faction = Faction;
+        this.power = Power;
+        this.range = Range;
+        this.effect = Effect;
+        this.amount = Amount;
+        this.spriteimage = Spriteimage;
+        this.climabool = Climabool;
+        this.aumentobool = Aumentobool;
+    }
 }
 

@@ -14,9 +14,9 @@ public class CardClass : GameEntity
     public Prop faction;
     public Prop power;
     public Prop range;
-    public Method onActivation;
+    public OnActivation onActivation;
 
-    public CardClass(Prop type, Prop name, Prop faction, Prop power, Prop range, Method onActivation)
+    public CardClass(Prop type, Prop name, Prop faction, Prop power, Prop range, OnActivation onActivation)
     {
         this.type = type;
         this.name = name;

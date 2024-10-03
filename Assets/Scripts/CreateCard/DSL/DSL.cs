@@ -63,6 +63,7 @@ public static class DSL
         // {
         //     Debug.Log(token.ToString());
         // }
+        
         if(hadError)
         {
             Debug.LogError("Invalid code\n");
@@ -77,19 +78,24 @@ public static class DSL
             Debug.LogError("Invalid code\n");
             return;
         }
-        // Interpreter interpreter = new Interpreter();
-        // Dictionary<Card, Method> pairs = interpreter.CreateCards(classes);
-        // if(hadError){
-        //     Debug.LogError("Invalid code\n");
-        //     return;
-        // }
 
-        
-        // foreach(var pair in pairs)
-        // {
-        //     Cardscreated.Add(pair.Key);
-        // }
+        Interpreter interpreter = new Interpreter();
+        Dictionary<Card, OnActivation> pairs = interpreter.CreateCards(GameEntities);
+        if(hadError){
+            Debug.LogError("Invalid code\n");
+            return;
+        }
 
+        foreach(var pair in pairs)
+        {
+            Cardscreated.Add(pair.Key);
+
+        }
+
+        foreach(Card card in Cardscreated)
+        {
+            Debug.Log(card.amount);
+        }
 
         Debug.Log("Successfull Compilation");
     }

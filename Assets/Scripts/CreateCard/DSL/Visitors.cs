@@ -10,8 +10,7 @@ public interface IVisitor
     object VisitUnary(Unary unary);
     object VisitBinary(Binary binary);
     object VisitGrouping(Grouping grouping);
-    object VisitVariableExpr(Variable variable);
-    object VisitLogicalExpr(Logical expr);  
+    object VisitVariableExpr(Variable variable); 
     object VisitCallExpr(Call call);
     object VisitAccessExpr(Access access);
     object VisitSetExpr(Set set);
