@@ -12,7 +12,8 @@ public static class DSL
     static bool hadError = false;
     static bool hadRuntimeError = false;
     public static List<Card> Cardscreated = new List<Card> ();
-
+    public static Dictionary<string, Method> onActs { get; set; }
+    public static List<EffectClass> effects { get; set; }
     public static void Error(int line, int column, string message) 
     {
         Report(line, column, "", message);
@@ -81,21 +82,19 @@ public static class DSL
 
         Interpreter interpreter = new Interpreter();
         Dictionary<Card, OnActivation> pairs = interpreter.CreateCards(GameEntities);
+
         if(hadError){
             Debug.LogError("Invalid code\n");
             return;
         }
 
+        onActs = new Dictionary<string, Method>();
         foreach(var pair in pairs)
         {
             Cardscreated.Add(pair.Key);
-
+            onActs[pair.Key.cardname] = pair.Value;
         }
 
-        foreach(Card card in Cardscreated)
-        {
-            Debug.Log(card.amount);
-        }
 
         Debug.Log("Successfull Compilation");
     }

@@ -403,7 +403,9 @@ public class Parser
             }
             else if (Match(TokenType.Dot))
             {
-                List<TokenType> properties = new List<TokenType> {TokenType.Faction, TokenType.Type, TokenType.Power, TokenType.Range, TokenType.Identifier};
+                List<TokenType> properties = new List<TokenType> {TokenType.Faction, TokenType.Type, TokenType.Power, TokenType.Range,
+                TokenType.Find, TokenType.Push, TokenType.SendBottom, TokenType.Pop,TokenType.Remove,TokenType.Shuffle,TokenType.HandOfPlayer, TokenType.Hand,
+                TokenType.Board,TokenType.FieldOfPlayer,TokenType.Field, TokenType.GraveyardOfPlayer, TokenType.Graveyard, TokenType.DeckOfPlayer, TokenType.Deck, TokenType.Identifier};
                 int c = 0;
                 foreach(TokenType tokentype in properties)
                 {
@@ -442,10 +444,10 @@ public class Parser
         List<IExpression> arguments = new List<IExpression> ();
         if(!Check(TokenType.RightParen))
         {
-            while(Match(TokenType.Comma))
+            do
             {
                 arguments.Add(expression());
-            }
+            }while(Match(TokenType.Comma));
         }
 
         if (!Consume(TokenType.RightParen, "Expected ')' after arguments.")) return null;

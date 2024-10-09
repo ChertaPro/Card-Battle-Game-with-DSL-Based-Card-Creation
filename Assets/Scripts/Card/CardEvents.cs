@@ -17,6 +17,7 @@ public class CardEvents : MonoBehaviour
     public GameObject Cardstats;
     public TextMeshProUGUI Powerstat;
     public TextMeshProUGUI Namestat;
+    public TextMeshProUGUI TypeStat;
     public Image Cardimage;
 
     
@@ -136,7 +137,8 @@ public class CardEvents : MonoBehaviour
         Powerstat = hideObject.transform.Find("Power")?.GetComponent<TextMeshProUGUI>();
         GameObject hide1 = Cardstats.transform.Find("Hide1")?.gameObject;
         Namestat = hide1.transform.Find("Name")?.GetComponent<TextMeshProUGUI>();
-        
+        GameObject hide2 = Cardstats.transform.Find("Hide 2")?.gameObject;
+        TypeStat = hide2.transform.Find("Type")?.GetComponent<TextMeshProUGUI>();
 
 
         if (Playercard.transform.parent != CRHand.transform && TurnSystem.turn ==1 )
@@ -145,6 +147,7 @@ public class CardEvents : MonoBehaviour
             Cardimage.sprite = stats.spriteimage;
             Powerstat.text = stats.power.ToString();
             Namestat.text = stats.cardname.ToString();
+            TypeStat.text = stats.cardtype.ToString();
         }
         if (Playercard.transform.parent != COCHand.transform && TurnSystem.turn == 0)
         {
@@ -152,6 +155,7 @@ public class CardEvents : MonoBehaviour
             Cardimage.sprite = stats.spriteimage;
             Powerstat.text = stats.power.ToString();
             Namestat.text = stats.cardname.ToString();
+            TypeStat.text = stats.cardtype.ToString();
         }
         
     }

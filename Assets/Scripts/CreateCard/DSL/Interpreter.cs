@@ -15,8 +15,7 @@ public class Interpreter : IVisitor
     public Environment globals = new Environment();
     public Environment environment = new Environment();
     private Gamecontext gamecontext;
-    private Lists lastList;
-    private Card lastCard;
+    
     private Dictionary<string, (Dictionary<string, TokenType>, Method)> effectFun;
     private object parentTargets;
     private Lists actualSource;
